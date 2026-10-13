@@ -1,0 +1,35 @@
+{
+  "name": "revai-platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A skill revai com interface: mesmo fluxo de 5 passos e mesmo contrato de dados (schema V2, Quality Gate, fix loop), agora com repos remotos e escolha/validação de harness local.",
+  "engines": { "node": ">=20.9" },
+  "scripts": {
+    "dev": "concurrently -n server,app -c yellow,cyan \"npm:dev:server\" \"npm:dev:app\"",
+    "dev:server": "tsx watch src/server/index.ts",
+    "dev:app": "vite",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build",
+    "start": "tsx src/server/index.ts --serve",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.0",
+    "hono": "^4.9.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.5.0",
+    "concurrently": "^9.1.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0",
+    "vite": "^7.0.0",
+    "vitest": "^3.2.0"
+  }
+}

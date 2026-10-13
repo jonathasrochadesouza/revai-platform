@@ -1,0 +1,12 @@
+# workspace (ignorados)
+skill-version/
+prototype/
+legacy/
+eg-project/
+
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+.env
+.DS_Store
