@@ -1,7 +1,7 @@
-// Quality Gate — espelha computeGate() do template da skill
+// Quality Gate — mirrors computeGate() from the skill template
 // (skill-version/revai/skills/revai/templates/review.html).
-// Regra central: "failed = criticalCount > 0"; segurança não falha sozinha,
-// mas entra na lista de criteria; blocker pulado → passa com aviso.
+// Core rule: "failed = criticalCount > 0"; security doesn't fail on its own,
+// but it joins the criteria list; skipped blocker → passes with a warning.
 import type { Finding, Gate, Severity } from './types'
 
 export const SEVERITIES: Severity[] = ['critical', 'major', 'minor', 'trivial']
@@ -11,7 +11,7 @@ type LegacyPriority = 'critical' | 'medium' | 'low'
 export const LEGACY_PRIORITIES: LegacyPriority[] = ['critical', 'medium', 'low']
 export const PRIORITY_MAP: Record<string, Severity> = { critical: 'critical', medium: 'major', low: 'minor' }
 
-/** Severidade efetiva: severity do schema V2 ou priority legado mapeada. */
+/** Effective severity: V2 schema severity or mapped legacy priority. */
 export function effSev(f: Finding): Severity | undefined {
   return f.severity ?? (f.priority ? PRIORITY_MAP[f.priority] : undefined)
 }

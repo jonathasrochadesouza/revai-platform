@@ -1,5 +1,5 @@
-// Diálogo nativo de escolha de pasta (o browser não entrega caminhos absolutos).
-// Windows: FolderBrowserDialog via PowerShell (janela TopMost, dona invisível).
+// Native folder-picking dialog (the browser cannot hand out absolute paths).
+// Windows: FolderBrowserDialog via PowerShell (TopMost, invisible owner window).
 // macOS: osascript choose folder · Linux: zenity.
 import fs from 'node:fs'
 import { stream } from './proc'
@@ -12,8 +12,8 @@ export async function pickFolder(startIn?: string): Promise<string | null> {
       startIn && fs.existsSync(startIn)
         ? startIn.replace(/'/g, "''")
         : "[Environment]::GetFolderPath('UserProfile')"
-    // Owner visível (pequeno, topmost) — sem isso o FolderBrowserDialog não pinta
-    // (form nunca mostrado = modal invisível que bloqueia para sempre).
+    // Visible owner (small, topmost) — without it the FolderBrowserDialog never paints
+    // (a form never shown = an invisible modal that blocks forever).
     const script = [
       "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8",
       "Add-Type -AssemblyName System.Windows.Forms",
@@ -28,7 +28,7 @@ export async function pickFolder(startIn?: string): Promise<string | null> {
       "$form.Show()",
       "$form.Activate()",
       "$dialog = New-Object System.Windows.Forms.FolderBrowserDialog",
-      "$dialog.Description = 'Escolha a pasta do projeto (repositório git)'",
+      "$dialog.Description = 'Choose the project folder (git repository)'",
       "$dialog.ShowNewFolderButton = $false",
       `$dialog.SelectedPath = '${start}'`,
       "$res = $dialog.ShowDialog($form)",
@@ -37,7 +37,7 @@ export async function pickFolder(startIn?: string): Promise<string | null> {
     ].join('\n')
     const r = await stream(['powershell.exe', '-NoProfile', '-STA', '-Command', script], timeout)
     if (r.code !== 0 && r.stderr.trim()) {
-      // erro real do script — sobe como falha em vez de "cancelado" silencioso
+      // real script error — surfaces as a failure instead of a silent "cancelled"
       throw new Error(r.stderr.trim().split('\n').slice(-2).join('\n'))
     }
     const lines = r.stdout.trim().split(/\r?\n/).filter(Boolean)
@@ -46,12 +46,12 @@ export async function pickFolder(startIn?: string): Promise<string | null> {
   }
 
   if (process.platform === 'darwin') {
-    const r = await stream(['osascript', '-e', 'POSIX path of (choose folder with prompt "Escolha a pasta do projeto")'], timeout)
+    const r = await stream(['osascript', '-e', 'POSIX path of (choose folder with prompt "Choose the project folder")'], timeout)
     const p = r.stdout.trim()
     return p && fs.existsSync(p) ? p : null
   }
 
-  const r = await stream(['zenity', '--file-selection', '--directory', '--title=Escolha a pasta do projeto'], timeout)
+  const r = await stream(['zenity', '--file-selection', '--directory', '--title=Choose the project folder'], timeout)
   const p = r.stdout.trim()
   return p && fs.existsSync(p) ? p : null
 }

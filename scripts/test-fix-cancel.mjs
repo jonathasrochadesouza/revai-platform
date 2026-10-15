@@ -1,4 +1,4 @@
-// testa o fluxo: fix streaming → cancel no meio do apply → servidor emite 'cancelled' → cliente descarta (reset) → clone limpo
+// tests the flow: fix streaming → cancel in the middle of apply → server emits 'cancelled' → client discards (reset) → clean clone
 const BASE = 'http://127.0.0.1:8797'
 const RID = process.argv[2] ?? 'r-mv73l94z-jfk18k'
 const CLONE = process.argv[3] ?? process.env.TEMP + '\\opencode\\revai-cancel-test'
@@ -6,7 +6,7 @@ const { execSync } = await import('node:child_process')
 
 const rec0 = await (await fetch(`${BASE}/api/reviews/${RID}`)).json()
 const target = rec0.findings.find((f) => f.status === 'open')
-console.log('fix alvo:', target.id, '-', target.title)
+console.log('fix target:', target.id, '-', target.title)
 const recGate0 = rec0.gate.status
 
 const t0 = Date.now()
@@ -44,23 +44,23 @@ for (;;) {
       if (ev.step === 'apply' && ev.status === 'running' && !cancelFired) {
         cancelFired = true
         setTimeout(async () => {
-          console.log('>>> CANCEL enviada ao servidor')
+          console.log('>>> CANCEL sent to the server')
           await fetch(`${BASE}/api/jobs/${jobId}/cancel`, { method: 'POST' })
         }, 2500)
       }
     } else if (ev.t === 'log') {
       console.log(`[${s}s] LOG[${ev.stream}] ${(ev.line || '').slice(0, 100)}`)
     } else if (ev.t === 'cancelled') {
-      console.log(`[${s}s] CANCELLED recebido — descartando como o Fix.tsx faria…`)
+      console.log(`[${s}s] CANCELLED received — discarding the way Fix.tsx would…`)
       await fetch(`${BASE}/api/reviews/${RID}/reset`, { method: 'POST' })
-      console.log('>>> RESET executado')
+      console.log('>>> RESET executed')
       const status = execSync('git -C "' + CLONE + '" status --porcelain', { encoding: 'utf8' }).trim()
-      console.log('>>> git status --porcelain (esperado: vazio):', JSON.stringify(status))
+      console.log('>>> git status --porcelain (expected: empty):', JSON.stringify(status))
       const rec2 = await (await fetch(`${BASE}/api/reviews/${RID}`)).json()
       const f2 = rec2.findings.find((f) => f.id === target.id)
-      console.log('>>> record: gate=' + rec2.gate.status + ' (antes=' + recGate0 + ') · ' + target.id + '=' + f2.status + ' (esperado open) · fixApplied=' + (rec2.fixApplied || []).join(',') + ' (esperado vazio)')
+      console.log('>>> record: gate=' + rec2.gate.status + ' (before=' + recGate0 + ') · ' + target.id + '=' + f2.status + ' (expected open) · fixApplied=' + (rec2.fixApplied || []).join(',') + ' (expected empty)')
       const ok = !status && rec2.gate.status === recGate0 && f2.status === 'open' && !(rec2.fixApplied || []).length
-      console.log(ok ? '>>> ✅ FLUXO CANCEL+DESCART APROVADO' : '>>> ❌ FALHOU')
+      console.log(ok ? '>>> ✅ CANCEL+DISCARD FLOW PASSED' : '>>> ❌ FAILED')
       process.exit(ok ? 0 : 4)
     } else if (ev.t === 'error') {
       console.log(`[${s}s] ERROR ${ev.code}: ${ev.message}`)
@@ -68,5 +68,5 @@ for (;;) {
     }
   }
 }
-console.log('stream fechou sem cancelled — cancelo cedo demais ou tarde demais?')
+console.log('stream closed without a cancelled event — did the cancel fire too early or too late?')
 process.exit(3)

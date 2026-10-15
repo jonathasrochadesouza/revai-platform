@@ -1,5 +1,5 @@
-// Parser de origem de review — suporta os formatos da tela 02 do protótipo:
-//   https://github.com/org/repo · …/tree/branch · …/pull/482 · gitlab merge_requests · git@host:org/repo · pasta local
+// Review source parser — supports the formats from screen 02 of the prototype:
+//   https://github.com/org/repo · …/tree/branch · …/pull/482 · gitlab merge_requests · git@host:org/repo · local folder
 import type { ParsedSource, ParsedRef } from './types'
 
 function normalizeHost(rawHost: string): string {
@@ -13,7 +13,7 @@ function providerOf(host: string): ParsedSource['provider'] {
 }
 
 function refFromUrl(host: string, rest: string): ParsedRef | undefined {
-  // github.com/org/repo/tree/branch (branch pode conter /) · gitlab .com/org/repo/-/tree/branch
+  // github.com/org/repo/tree/branch (branch may contain /) · gitlab .com/org/repo/-/tree/branch
   let m = rest.match(/^\/(?:-\/)?tree\/(.+)$/)
   if (m) return { value: decodeURIComponent(m[1]).replace(/\/+$/, ''), kind: 'branch', label: decodeURIComponent(m[1]).replace(/\/+$/, '') }
   m = rest.match(/^\/(?:-\/)?commits?\/([0-9a-f]{7,40})\/?$/)
@@ -38,9 +38,9 @@ function refFromUrl(host: string, rest: string): ParsedRef | undefined {
 
 export function parseSource(rawInput: string): ParsedSource {
   const raw = rawInput.trim().replace(/\s+/g, ' ')
-  if (!raw) throw new Error('source-vazia')
+  if (!raw) throw new Error('empty source')
 
-  // Pasta local (windows drive, UNC, ~, ./, ou caminho existente com separador)
+  // Local folder (windows drive, UNC, ~, ./, or existing path with separator)
   if (/^[a-zA-Z]:[\\/]/.test(raw) || /^\\\\/.test(raw) || /^[~/]/.test(raw) || raw.startsWith('./') || raw.startsWith('.\\')) {
     return { kind: 'folder', provider: 'other', host: 'localhost', org: '', repo: raw.replace(/[\\/]+$/, ''), raw }
   }
@@ -52,7 +52,7 @@ export function parseSource(rawInput: string): ParsedSource {
   const isSshUrl = /^ssh:\/\/[\w@.-]+\//i.test(raw)
   const isScp = /^git@[\w.-]+:/.test(raw)
 
-  // org/repo → github implícito
+  // org/repo → implicit github
   let host: string | undefined
   let rest: string | undefined
 
@@ -62,7 +62,7 @@ export function parseSource(rawInput: string): ParsedSource {
     rest = (u.pathname || '').replace(/\/+$/, '') + (u.hash ? '' : '')
   } else if (isScp) {
     const m = raw.match(/^git@([\w.-]+):(.+?)(?:\.git)?\/?$/)
-    if (!m) throw new Error('ssh inválido')
+    if (!m) throw new Error('invalid ssh url')
     host = normalizeHost(m[1])
     rest = '/' + m[2]
   } else if (isSshUrl) {
@@ -73,23 +73,23 @@ export function parseSource(rawInput: string): ParsedSource {
     host = 'github.com'
     rest = '/' + raw.replace(/\.git$/, '')
   } else if (/^[\w.-]*$/.test(raw) && raw.includes('.')) {
-    throw new Error('origem não reconhecida')
+    throw new Error('unrecognized source')
   } else {
-    throw new Error('origem não reconhecida')
+    throw new Error('unrecognized source')
   }
 
-  if (!host) throw new Error('host ausente')
+  if (!host) throw new Error('missing host')
 
-  // strip .git sufixo
+  // strip .git suffix
   if (rest && /\.git$/.test(rest) && !refFromUrl(host, rest)) rest = rest.replace(/\.git$/, '')
 
   const segs = (rest ?? '').split('/').filter(Boolean)
-  if (segs.length < 2) throw new Error('faltando org/repo na URL')
+  if (segs.length < 2) throw new Error('missing org/repo in URL')
   const org = segs[0]
   let repo = segs[1].replace(/\.git$/, '')
-  if (!/^[\w.-]+$/.test(repo)) throw new Error('nome de repo inválido')
+  if (!/^[\w.-]+$/.test(repo)) throw new Error('invalid repo name')
 
-  // ref dentro da URL começa depois de /org/repo(/-)?/(tree|pull|merge_requests…)
+  // ref in the URL starts after /org/repo(/-)?/(tree|pull|merge_requests…)
   const afterRepo = segs.slice(2).join('/')
   const ref = refFromUrl(host, '/' + afterRepo)
 

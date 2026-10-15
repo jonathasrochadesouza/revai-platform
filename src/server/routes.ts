@@ -1,4 +1,4 @@
-// API local em 127.0.0.1 — contratuais {error:{code,message,detail}} e SSE para jobs longos.
+// Local API on 127.0.0.1 — contractual {error:{code,message,detail}} and SSE for long-running jobs.
 import fs from 'node:fs'
 import path from 'node:path'
 import { Hono, type Context } from 'hono'
@@ -27,7 +27,7 @@ function pick<T extends object>(body: unknown): T {
 
 async function loadRecord(id: string): Promise<ReviewRecord> {
   const record = store.loadRecord(id)
-  if (!record) throw new AppError('reviews/not-found', `review ${id} não encontrada`, undefined, 404)
+  if (!record) throw new AppError('reviews/not-found', `Review ${id} not found`, undefined, 404)
   return record
 }
 
@@ -68,11 +68,11 @@ api.get('/harnesses', async (c) => c.json({ harnesses: await harn.discoverHarnes
 
 api.post('/harnesses', async (c) => {
   const body = pick<{ id?: string; exe?: string; model?: string; isDefault?: boolean; customName?: string }>(await c.req.json().catch(() => ({})))
-  if (!body.id) throw new AppError('harness/not-found', 'id do harness obrigatório')
+  if (!body.id) throw new AppError('harness/not-found', 'Harness id is required')
   if (body.id.startsWith('custom-')) {
     const customName = body.customName && body.customName.trim()
-    if (!customName) throw new AppError('harness/not-found', 'customName obrigatório para harness customizado')
-    if (!body.exe || !fs.existsSync(body.exe)) throw new AppError('harness/not-found', 'caminho do executável inválido')
+    if (!customName) throw new AppError('harness/not-found', 'customName is required for a custom harness')
+    if (!body.exe || !fs.existsSync(body.exe)) throw new AppError('harness/not-found', 'Invalid executable path')
     store.upsertHarnessState({ defId: body.id, customName, exe: body.exe })
   } else {
     const states = store.readHarnessStates()
@@ -97,7 +97,7 @@ api.post('/harnesses', async (c) => {
 
 api.post('/harnesses/validate', async (c) => {
   const body = pick<{ id?: string }>(await c.req.json().catch(() => ({})))
-  if (!body.id) throw new AppError('harness/not-found', 'id do harness obrigatório')
+  if (!body.id) throw new AppError('harness/not-found', 'Harness id is required')
   return c.json(await harn.validateHarness(body.id))
 })
 
@@ -114,26 +114,26 @@ api.put('/settings', async (c) => {
 // ── projects ──────────────────────────────────────────────────────────────
 api.post('/projects/resolve', async (c) => {
   const body = pick<{ source?: string }>(await c.req.json().catch(() => ({})))
-  if (!body.source) throw new AppError('source/unrecognized', 'source obrigatória')
+  if (!body.source) throw new AppError('source/unrecognized', 'Source is required')
   const { parsed, info } = await proj.resolveSource(body.source)
   return c.json({ parsed, info })
 })
 
 api.post('/projects/prepare', async (c) => {
   const body = pick<{ source?: string }>(await c.req.json().catch(() => ({})))
-  if (!body.source) throw new AppError('source/unrecognized', 'source obrigatória')
-  const prepared = await proj.prepareFromInput(body.source, () => { /* logs de clone vão no stream do review */ })
+  if (!body.source) throw new AppError('source/unrecognized', 'Source is required')
+  const prepared = await proj.prepareFromInput(body.source, () => { /* clone logs go into the review stream */ })
   return c.json(prepared)
 })
 
 // ── reviews ───────────────────────────────────────────────────────────────
 api.post('/reviews/stream', async (c) => {
   const cfg = await c.req.json<RunReviewBody>()
-  if (!cfg?.source || !cfg?.head) throw new AppError('source/unrecognized', 'source/head obrigatórios')
+  if (!cfg?.source || !cfg?.head) throw new AppError('source/unrecognized', 'Source and head are required')
   const jobId = `j-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
   return streamSSE(c, async (s) => {
     const send: Send = async (ev: SseEvent) => {
-      try { await s.writeSSE({ data: JSON.stringify(ev) }) } catch { /* cliente saiu */ }
+      try { await s.writeSSE({ data: JSON.stringify(ev) }) } catch { /* client disconnected */ }
     }
     await send({ t: 'job', id: jobId })
     try {
@@ -165,7 +165,7 @@ api.patch('/reviews/:id/findings/:fid', async (c) => {
   const body = pick<{ status?: 'open' | 'resolved' | 'skipped' }>(await c.req.json().catch(() => ({})))
   const action = body.status
   if (action !== 'open' && action !== 'resolved' && action !== 'skipped') {
-    throw new AppError('findings/bad-status', 'status deve ser open | resolved | skipped')
+    throw new AppError('findings/bad-status', 'Status must be open | resolved | skipped')
   }
   const updated = await patchFindingStatus(await loadRecord(c.req.param('id')), c.req.param('fid'), action)
   return c.json(updated)
@@ -174,12 +174,12 @@ api.patch('/reviews/:id/findings/:fid', async (c) => {
 api.post('/reviews/:id/fix/stream', async (c) => {
   const body = await c.req.json<RunFixBody>()
   const ids = Array.isArray(body?.ids) ? body.ids : []
-  if (!ids.length) throw new AppError('fix/no-changes', 'fila de fixes vazia')
+  if (!ids.length) throw new AppError('fix/no-changes', 'Fix queue is empty')
   const record = await loadRecord(c.req.param('id'))
   const jobId = `fx-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
   return streamSSE(c, async (s) => {
     const send = async (ev: FixEvent) => {
-      try { await s.writeSSE({ data: JSON.stringify(ev) }) } catch { /* cliente saiu */ }
+      try { await s.writeSSE({ data: JSON.stringify(ev) }) } catch { /* client disconnected */ }
     }
     try {
       await runFix(send, record, ids, jobId, jobs, body?.runTests)
@@ -193,16 +193,16 @@ api.post('/reviews/:id/push', async (c) => {
   const record = await loadRecord(c.req.param('id'))
   const body = pick<{ branch?: string }>(await c.req.json().catch(() => ({})))
   const dir = record.repo.dir
-  if (!dir || !fs.existsSync(dir)) throw new AppError('repo/inaccessible', 'clone inexistente no cache')
+  if (!dir || !fs.existsSync(dir)) throw new AppError('repo/inaccessible', 'Clone missing from the cache')
   const branch = body.branch || `revai/fix-${record.slug}`
   const co = await g.git(['checkout', '-B', branch], dir)
-  if (co.code !== 0) throw new AppError('push/failed', 'falha ao criar a branch', co.stderr.trim())
+  if (co.code !== 0) throw new AppError('push/failed', 'Failed to create the branch', co.stderr.trim())
   await g.git(['add', '-A'], dir)
   const cm = await g.git(['commit', '-m', `fix: apply revai fixes for ${record.slug}`], dir)
-  if (cm.code !== 0) throw new AppError('push/failed', 'falha ao commitar', cm.stderr.trim())
+  if (cm.code !== 0) throw new AppError('push/failed', 'Failed to commit', cm.stderr.trim())
   const ps = await stream(['git', 'push', '-u', 'origin', branch, '--progress'], { cwd: dir, timeoutMs: 120_000 })
   if (ps.code !== 0) {
-    throw new AppError('push/failed', 'push recusado pelo remoto', (ps.stderr || ps.stdout).trim().split('\n').slice(-3).join('\n'))
+    throw new AppError('push/failed', 'Push rejected by the remote', (ps.stderr || ps.stdout).trim().split('\n').slice(-3).join('\n'))
   }
   return c.json({ branch, output: (ps.stdout + ps.stderr).trim().split('\n').slice(-4).join('\n') })
 })
@@ -210,7 +210,7 @@ api.post('/reviews/:id/push', async (c) => {
 api.post('/reviews/:id/reset', async (c) => {
   const record = await loadRecord(c.req.param('id'))
   const dir = record.repo.dir
-  if (!dir || !fs.existsSync(dir)) throw new AppError('repo/inaccessible', 'clone inexistente no cache')
+  if (!dir || !fs.existsSync(dir)) throw new AppError('repo/inaccessible', 'Clone missing from the cache')
   await g.git(['reset', '--hard', 'HEAD'], dir)
   await g.git(['clean', '-fd'], dir)
   return c.json({ ok: true })
@@ -221,7 +221,7 @@ api.get('/reviews/:id/artifacts/:kind', async (c) => {
   const kind = c.req.param('kind')
   const dir = recordDir(record.id)
   const name = kind === 'patch' ? 'review.patch' : kind === 'fixpatch' ? 'fix.patch' : kind === 'html' ? 'review.html' : kind === 'record' ? 'record.json' : ''
-  if (!name) throw new AppError('internal/not-found', 'artefato desconhecido', undefined, 404)
+  if (!name) throw new AppError('internal/not-found', 'Unknown artifact', undefined, 404)
   const file = path.join(dir, name)
   const buf = fs.readFileSync(file)
   if (kind === 'html') {
@@ -237,7 +237,7 @@ api.get('/reviews/:id/artifacts/:kind', async (c) => {
 api.post('/reviews/:id/open-report', async (c) => {
   const record = await loadRecord(c.req.param('id'))
   const file = path.join(recordDir(record.id), 'review.html')
-  if (!fs.existsSync(file)) throw new AppError('internal/not-found', 'HTML da skill não está no cache deste review', undefined, 404)
+  if (!fs.existsSync(file)) throw new AppError('internal/not-found', 'Skill HTML is not in the cache for this review', undefined, 404)
   await shellOpen(file)
   return c.json({ ok: true })
 })
@@ -245,7 +245,7 @@ api.post('/reviews/:id/open-report', async (c) => {
 api.post('/reviews/:id/open-editor', async (c) => {
   const record = await loadRecord(c.req.param('id'))
   const dir = record.repo.dir
-  if (!dir || !fs.existsSync(dir)) throw new AppError('repo/inaccessible', 'clone inexistente no cache')
+  if (!dir || !fs.existsSync(dir)) throw new AppError('repo/inaccessible', 'Clone missing from the cache')
   for (const cmd of ['code', 'cursor']) {
     const r = await exec(process.platform === 'win32' ? ['where', cmd] : ['which', cmd], { timeoutMs: 5_000 })
     if (r.code === 0 && r.stdout.trim()) {
@@ -263,8 +263,8 @@ api.delete('/reviews/:id', async (c) => {
   return c.json({ ok: true })
 })
 
-// ── sistema ───────────────────────────────────────────────────────────────
-/** Diálogo nativo do SO para escolher pasta ('Pasta local' na tela Nova review). */
+// ── system ────────────────────────────────────────────────────────────────
+/** OS-native folder-picker dialog ('Local folder' on the New review screen). */
 api.post('/system/pick-folder', async (c) => {
   const body = pick<{ startIn?: string }>(await c.req.json().catch(() => ({})))
   return c.json({ path: await pickFolder(body.startIn) })
@@ -276,7 +276,7 @@ api.post('/jobs/:jobId/cancel', (c) => {
   return c.json({ ok: true })
 })
 
-// ── manutenção ────────────────────────────────────────────────────────────
+// ── maintenance ───────────────────────────────────────────────────────────
 api.get('/maintenance/stats', (c) => {
   const repos = listRepos()
   const rows = store.readIndex()
@@ -314,10 +314,10 @@ function listRepos(): string[] {
         for (const repo of fs.readdirSync(orgDir)) out.push(path.join(orgDir, repo))
       }
     }
-  } catch { /* dir ausente */ }
+  } catch { /* dir missing */ }
   return out
 }
 
 export function notFoundForApi(c: Context) {
-  return c.json({ error: { code: 'internal/not-found', message: 'rota inexistente' } }, 404)
+  return c.json({ error: { code: 'internal/not-found', message: 'Route not found' } }, 404)
 }

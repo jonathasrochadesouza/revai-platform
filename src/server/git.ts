@@ -1,4 +1,4 @@
-// Git plumbing — clone em cache ~/.revai/repos, branches, base detection, numstat, push/reset.
+// Git plumbing — clone cache ~/.revai/repos, branches, base detection, numstat, push/reset.
 import fs from 'node:fs'
 import path from 'node:path'
 import { exec, stream } from './proc'
@@ -8,7 +8,7 @@ export async function git(args: string[], cwd?: string, timeoutMs = 60_000) {
   return exec(['git', ...args], { cwd, timeoutMs })
 }
 
-/** roda mostrando progresso (clone/fetch) */
+/** runs showing progress (clone/fetch) */
 export function gitStream(
   args: string[],
   cwd: string | undefined,
@@ -51,7 +51,7 @@ export async function lastCommitAuthor(dir: string): Promise<{ author: string; d
   return { author, date }
 }
 
-/** branch remota sugerida pelo origin/HEAD (como findBaseBranch da skill) */
+/** remote branch suggested by origin/HEAD (like the skill's findBaseBranch) */
 export async function originHead(dir: string): Promise<string | null> {
   const r = await git(['remote', 'show', 'origin'], dir, 30_000)
   const m = r.stdout.match(/HEAD branch: ([^\s]+)/)
@@ -72,7 +72,7 @@ export async function mergeBase(dir: string, a: string, b: string): Promise<stri
   return r.code === 0 ? r.stdout.trim().split('\n')[0] : null
 }
 
-/** detectBase: settings.defaultBase → origin/HEAD → main/master/develop (1ª com merge-base ok) */
+/** detectBase: settings.defaultBase → origin/HEAD → main/master/develop (first with a valid merge-base) */
 export async function detectBase(
   dir: string,
   headRemoteRef: string,

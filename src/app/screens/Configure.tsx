@@ -1,5 +1,5 @@
-// 03-configure — branch/base, arquivos alterados, regras e estimativa.
-// O runner (harness padrão definido no primeiro setup) executa o review — sem gestão de harnesses aqui.
+// 03-configure — branch/base, changed files, rules and time estimate.
+// The runner (default harness chosen in the first setup) runs the review — no harness management here.
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon, useToast, fmtDur } from '../ui'
@@ -58,19 +58,19 @@ export default function Configure() {
       }
       if (!target) {
         throw Object.assign(
-          new Error('nenhum CLI local encontrado (kiro-cli / claude / codex / opencode) — rode o primeiro setup em /onboarding'),
+          new Error('no local CLI found (kiro-cli / claude / codex / opencode) — run the first setup at /onboarding'),
           { code: 'harness/not-found' },
         )
       }
       if (target.status !== 'ready') {
-        toast(`Validando ${target.name} antes de iniciar…`)
+        toast(`Validating ${target.name} before starting…`)
         await post('/harnesses/validate', { id: target.id })
       }
       saveRun({ source, head, base, harnessId: target.id })
-      toast(`Review iniciado com ${target.name}`, 'ok')
+      toast(`Review started with ${target.name}`, 'ok')
       nav('/running')
     } catch (e: any) {
-      toast(`Falha ao iniciar: ${e.message}`, 'err')
+      toast(`Failed to start: ${e.message}`, 'err')
     } finally {
       setStarting(false)
     }
@@ -92,7 +92,7 @@ export default function Configure() {
       <div className="page narrow">
         <h1>Configure</h1>
         <div className="callout err"><Icon name="alert" /><span><b>{prepErr.code}</b><br /><span className="small">{prepErr.message}</span></span></div>
-        <button className="btn" onClick={() => nav('/new')}>← Nova origem</button>
+        <button className="btn" onClick={() => nav('/new')}>← New source</button>
       </div>
     )
   }
@@ -101,7 +101,7 @@ export default function Configure() {
     return (
       <div className="page narrow">
         <h1>Configure</h1>
-        <div className="row"><span className="spinner" /> <span className="muted">Clonando e preparando o diff…</span></div>
+        <div className="row"><span className="spinner" /> <span className="muted">Cloning and preparing the diff…</span></div>
       </div>
     )
   }
@@ -113,7 +113,7 @@ export default function Configure() {
     <div className="page narrow">
       <h1 className="mono" style={{ fontSize: 18 }}>{prepared.label}</h1>
       <p className="lede">
-        Branch + escopo. Clonado em <span className="mono small">{prepared.repoDir}</span>
+        Branch + scope. Cloned to <span className="mono small">{prepared.repoDir}</span>
       </p>
 
       <div className="report-grid">
@@ -139,13 +139,13 @@ export default function Configure() {
             </div>
             {!!prepared.commits && (
               <div className="small muted num">
-                {prepared.commits} commit(s) {prepared.lastCommitAuthor ? `· último por ${prepared.lastCommitAuthor}` : ''}
+                {prepared.commits} commit(s) {prepared.lastCommitAuthor ? `· last by ${prepared.lastCommitAuthor}` : ''}
               </div>
             )}
           </div>
 
           <div className="card pad col">
-            <b className="small">{prepared.filesChanged} arquivo(s) alterado(s)</b>
+            <b className="small">{prepared.filesChanged} file(s) changed</b>
             {files.slice(0, 9).map((f) => (
               <div key={f.path} className="frow">
                 <span className="path mono">{f.path}</span>
@@ -159,14 +159,14 @@ export default function Configure() {
             {prepared.files.filter((f) => f.ignored).slice(0, 3).map((f) => (
               <div key={f.path} className="frow faint">
                 <span className="path mono">{f.path}</span>
-                <span className="badge small">ignorado · lockfile</span>
+                <span className="badge small">ignored · lockfile</span>
               </div>
             ))}
           </div>
 
           <div className="card pad col">
-            <b className="small">Regras detectadas</b>
-            <span className="row small"><span className={`dot ${prepared.rules.rulesMd ? 'ok' : 'crit'}`} /> .revai/rules.md {prepared.rules.rulesMd ? `· ${prepared.rules.rulesLines} linhas` : 'não encontrado'}</span>
+            <b className="small">Rules detected</b>
+            <span className="row small"><span className={`dot ${prepared.rules.rulesMd ? 'ok' : 'crit'}`} /> .revai/rules.md {prepared.rules.rulesMd ? `· ${prepared.rules.rulesLines} lines` : 'not found'}</span>
             <span className="row small"><span className={`dot ${prepared.rules.contributing ? 'ok' : 'off'}`} /> CONTRIBUTING.md</span>
             <span className="row small"><span className={`dot ${prepared.rules.codingStandards ? 'ok' : 'off'}`} /> CODING_STANDARDS.md</span>
           </div>
@@ -175,21 +175,21 @@ export default function Configure() {
         <div className="side-fill col" style={{ gap: 16 }}>
           <div className="card pad row small" style={{ gap: 8 }}>
             <span className={`dot ${runner?.status === 'ready' ? 'ok' : 'off'}`} />
-            <b>{runner?.name ?? 'sem runner'}</b>
+            <b>{runner?.name ?? 'no runner'}</b>
             {runner?.version && <span className="mono num faint">{runner.version}</span>}
-            <span className="faint">executa este review · {runner?.status === 'ready' ? 'validado' : 'valida ao iniciar'}</span>
+            <span className="faint">runs this review · {runner?.status === 'ready' ? 'validated' : 'validates on start'}</span>
           </div>
 
           <div className="card pad">
             <dl className="kv" style={{ gridTemplateColumns: '92px 1fr' }}>
-              <dt>Escopo</dt><dd>Só linhas alteradas</dd>
-              <dt>Playbooks</dt><dd>{prepared.languages.join(', ') || 'Geral'}</dd>
-              <dt>Tempo</dt><dd className="num">~{fmtDur(prepared.estimateMs)}</dd>
+              <dt>Scope</dt><dd>Changed lines only</dd>
+              <dt>Playbooks</dt><dd>{prepared.languages.join(', ') || 'General'}</dd>
+              <dt>Time</dt><dd className="num">~{fmtDur(prepared.estimateMs)}</dd>
             </dl>
           </div>
 
           <button className="btn primary lg" disabled={starting} onClick={() => void start()}>
-            Iniciar review <kbd>Ctrl ↵</kbd> {starting && <span className="spinner" />}
+            Start review <kbd>Ctrl ↵</kbd> {starting && <span className="spinner" />}
           </button>
         </div>
       </div>

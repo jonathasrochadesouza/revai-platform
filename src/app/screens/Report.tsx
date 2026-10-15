@@ -1,4 +1,4 @@
-// 05-report — lista + detalhe, filtros, atalhos J/K/S/C/F e ações
+// 05-report — list + detail, filters, J/K/S/C/F shortcuts and actions
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Icon, GatePanel, GateBadge, SevBadge, CatBadge, CodeDiff, relTime, fmtDur, copyText, useToast, sevOf } from '../ui'
@@ -54,7 +54,7 @@ export default function Report() {
     try {
       const updated = await patch<ReviewRecord>(`/reviews/${record.id}/findings/${fid}`, { status })
       setRecord(updated)
-      const labels: Record<string, string> = { open: 'restaurado', resolved: 'resolvido', skipped: 'pulada' }
+      const labels: Record<string, string> = { open: 'restored', resolved: 'resolved', skipped: 'skipped' }
       toast(`CR ${fid} ${labels[status]}`, status === 'skipped' ? 'info' : 'ok')
     } catch (e: any) {
       toast(e.message, 'err')
@@ -76,10 +76,10 @@ export default function Report() {
       if (e.key === 'k') move(-1)
       const selF = filtered.find((f) => f.id === sel)
       if (e.key === 's' && sel && selF && selF.status !== 'resolved' && !record?.skipped.includes(selF.id)) void changeStatus(sel, 'skipped')
-      if (e.key === 's' && sel && record?.skipped.includes(sel)) void changeStatus(sel, 'open') // S desfaz o pulo
+      if (e.key === 's' && sel && record?.skipped.includes(sel)) void changeStatus(sel, 'open') // S undoes the skip
       if (e.key === 'c' && sel && record) {
         void copyText(`Fix ${sel} in the revai review of ${record.slug}`)
-        toast('Prompt copiado', 'ok')
+        toast('Prompt copied', 'ok')
       }
       if (e.key === 'f' && sel && record && selF && selF.status !== 'resolved' && !record?.skipped.includes(selF.id)) nav(`/fix/${record.id}?ids=${sel}`)
     },
@@ -95,7 +95,7 @@ export default function Report() {
   if (err) {
     return (
       <div className="page narrow">
-        <h1>Relatório</h1>
+        <h1>Report</h1>
         <div className="callout err"><Icon name="alert" /><span><b>{err.code}</b><br /><span className="small">{err.message}</span></span></div>
         <Link className="btn" to="/">← Reviews</Link>
       </div>
@@ -104,7 +104,7 @@ export default function Report() {
   if (!record) {
     return (
       <div className="page narrow">
-        <div className="row"><span className="spinner" /> <span className="muted">Carregando relatório…</span></div>
+        <div className="row"><span className="spinner" /> <span className="muted">Loading report…</span></div>
       </div>
     )
   }
@@ -123,8 +123,8 @@ export default function Report() {
         <GateBadge status={record.gate.status} />
       </div>
       <p className="lede" style={{ marginTop: 0 }}>
-        {openCount} abertas · {resolvedCount} resolvidas · {skippedCount} puladas ·
-        {' '}{record.stats.filesChanged} arquivo(s) +{record.stats.additions} −{record.stats.deletions} ·
+        {openCount} open · {resolvedCount} resolved · {skippedCount} skipped ·
+        {' '}{record.stats.filesChanged} file(s) +{record.stats.additions} −{record.stats.deletions} ·
         {' '}{record.harnessName}{record.model ? ` · ${record.model}` : ''} · {fmtDur(record.stats.durationMs)} · {relTime(record.createdAt)}
       </p>
 
@@ -133,46 +133,46 @@ export default function Report() {
           <GatePanel gate={record.gate} />
           <div className="card pad col" style={{ gap: 8 }}>
             <label className="field">
-              Severidade
+              Severity
               <select className="select" value={fSev} onChange={(e) => setFSev(e.target.value as any)}>
-                <option value="all">Todas</option>
+                <option value="all">All</option>
                 {(['critical', 'major', 'minor', 'trivial'] as Severity[]).map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </label>
             <label className="field">
               Status
               <select className="select" value={fStatus} onChange={(e) => setFStatus(e.target.value as any)}>
-                <option value="all">Todos</option>
-                <option value="open">Abertas</option>
-                <option value="resolved">Resolvidas</option>
-                <option value="skipped">Puladas</option>
+                <option value="all">All</option>
+                <option value="open">Open</option>
+                <option value="resolved">Resolved</option>
+                <option value="skipped">Skipped</option>
               </select>
             </label>
             <label className="field">
-              Arquivo
+              File
               <select className="select" value={fFile} onChange={(e) => setFFile(e.target.value)}>
-                <option value="all">Todos</option>
+                <option value="all">All</option>
                 {files.map((f) => <option key={f} value={f}>{f}</option>)}
               </select>
             </label>
           </div>
           <div className="card pad col small">
-            <b>Onde ficam os dados</b>
+            <b>Where the data lives</b>
             <span className="mono faint small">{record.id}/review.patch</span>
             <span className="mono faint small">{record.id}/review.json</span>
             <div className="col" style={{ marginTop: 6, gap: 8, alignItems: 'flex-start' }}>
               <a className="btn sm" href={`/api/reviews/${record.id}/artifacts/patch`} download>
-                <Icon name="download" /> Baixar patch
+                <Icon name="download" /> Download patch
               </a>
-              <button className="btn sm ghost" onClick={async () => { await post(`/reviews/${record.id}/open-report`); toast('HTML da skill aberto no navegador', 'ok') }}>
-                <Icon name="external" /> Ver HTML da skill
+              <button className="btn sm ghost" onClick={async () => { await post(`/reviews/${record.id}/open-report`); toast('Skill HTML opened in the browser', 'ok') }}>
+                <Icon name="external" /> View skill HTML
               </button>
             </div>
           </div>
         </aside>
 
         <div className="col" style={{ gap: 0 }}>
-          {filtered.length === 0 && <div className="empty"><div className="small">nenhum finding com este filtro</div></div>}
+          {filtered.length === 0 && <div className="empty"><div className="small">no findings match this filter</div></div>}
           <div className="list card">
             {filtered.map((f) => {
               const sev = sevOf(f)
@@ -187,8 +187,8 @@ export default function Report() {
                   <div className="meta-1">
                     <SevBadge sev={sev} />
                     <CatBadge cat={f.category} />
-                    {f.status === 'resolved' && <span className="badge ok">resolvido</span>}
-                    {skipped && <span className="badge accent">pulada</span>}
+                    {f.status === 'resolved' && <span className="badge ok">resolved</span>}
+                    {skipped && <span className="badge accent">skipped</span>}
                     <span className="mono faint small" style={{ marginLeft: 'auto' }}>{f.id}</span>
                   </div>
                   <b className="small">{f.title}</b>
@@ -203,37 +203,37 @@ export default function Report() {
               <div className="row" style={{ flexWrap: 'wrap' }}>
                 <SevBadge sev={sevOf(selFind)} />
                 <CatBadge cat={selFind.category} />
-                {selFind.status === 'resolved' && <span className="badge ok">resolvido — imutável</span>}
+                {selFind.status === 'resolved' && <span className="badge ok">resolved — immutable</span>}
                 <span className="mono faint">{selFind.id}</span>
                 <span className="spacer" />
                 {selSkipped && (
-                  <button className="btn sm" onClick={() => void changeStatus(selFind.id, 'open')}><Icon name="refresh" /> Restaurar <kbd>S</kbd></button>
+                  <button className="btn sm" onClick={() => void changeStatus(selFind.id, 'open')}><Icon name="refresh" /> Restore <kbd>S</kbd></button>
                 )}
                 {!selSkipped && selFind.status !== 'resolved' && (
-                  <button className="btn sm danger" onClick={() => void changeStatus(selFind.id, 'skipped')}><Icon name="skip" /> Pular <kbd>S</kbd></button>
+                  <button className="btn sm danger" onClick={() => void changeStatus(selFind.id, 'skipped')}><Icon name="skip" /> Skip <kbd>S</kbd></button>
                 )}
                 {selFind.status !== 'resolved' && !selSkipped && (
-                  <button className="btn sm primary" onClick={() => nav(`/fix/${record.id}?ids=${selFind.id}`)}><Icon name="wand" /> Corrigir <kbd>F</kbd></button>
+                  <button className="btn sm primary" onClick={() => nav(`/fix/${record.id}?ids=${selFind.id}`)}><Icon name="wand" /> Fix <kbd>F</kbd></button>
                 )}
-                <button className="btn sm ghost" onClick={() => { void copyText(`Fix ${selFind.id} in the revai review of ${record.slug}`); toast('Prompt copiado', 'ok') }}>
-                  <Icon name="copy" /> Copiar prompt <kbd>C</kbd>
+                <button className="btn sm ghost" onClick={() => { void copyText(`Fix ${selFind.id} in the revai review of ${record.slug}`); toast('Prompt copied', 'ok') }}>
+                  <Icon name="copy" /> Copy prompt <kbd>C</kbd>
                 </button>
               </div>
               <h3 style={{ margin: '12px 0 0' }}>{selFind.title}</h3>
               <div className="mono small" style={{ color: 'var(--fg-2)' }}>{selFind.file}:{selFind.lines}</div>
               <div className="col small" style={{ gap: 8 }}>
-                <b>O que é</b>
+                <b>What it is</b>
                 <span>{selFind.description}</span>
               </div>
               {selFind.rationale && (
                 <div className="col small" style={{ gap: 8 }}>
-                  <b>Por que importa</b>
+                  <b>Why it matters</b>
                   <span>{selFind.rationale}</span>
                 </div>
               )}
               {selFind.proposedFix && (
                 <div className="col small" style={{ gap: 8 }}>
-                  <b>Correção proposta</b>
+                  <b>Proposed fix</b>
                   <CodeDiff before={selFind.proposedFix.before} after={selFind.proposedFix.after} maxHeight={240} />
                 </div>
               )}
@@ -242,7 +242,7 @@ export default function Report() {
               )}
               {selSkipped && isBlocker && (
                 <div className="callout warn small">
-                  Pular um bloqueador libera o Quality Gate — o registro da decisão fica no relatório.
+                  Skipping a blocker releases the Quality Gate — the decision record stays in the report.
                 </div>
               )}
             </div>

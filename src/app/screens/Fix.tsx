@@ -1,4 +1,4 @@
-// 06-fix — fila de correções com apply → testes → gate delta
+// 06-fix — fix queue with apply → tests → gate delta
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Icon, Terminal, Stepper, useToast, type LogLine } from '../ui'
@@ -60,7 +60,7 @@ export default function Fix() {
           return
         }
         if (ev.t === 'item') {
-          const stepLabel: Record<string, string> = { apply: 'aplicar', test: 'testar', done: 'concluído', failed: 'falhou' }
+          const stepLabel: Record<string, string> = { apply: 'apply', test: 'test', done: 'done', failed: 'failed' }
           setItems((old) => old.map((o) => (o.id === ev.id ? { ...o, step: stepLabel[ev.step] ?? ev.step, status: ev.status === 'running' ? 'running' : ev.status === 'ok' ? 'done' : 'failed', detail: ev.detail ?? o.detail } : o)))
           return
         }
@@ -86,11 +86,11 @@ export default function Fix() {
         }
         if (ev.t === 'cancelled') {
           setStatus('cancelled')
-          // o servidor quebrou o loop; o cliente descarta as alterações no clone
+          // the server broke the loop; the client discards the changes in the clone
           try {
             await post(`/reviews/${r.id}/reset`)
-            toast('Alterações descartadas (git reset --hard no clone)', 'ok')
-          } catch { /* clone pode já ter sido limpo */ }
+            toast('Changes discarded (git reset --hard on the clone)', 'ok')
+          } catch { /* the clone may already have been cleaned up */ }
           return
         }
       },
@@ -102,23 +102,23 @@ export default function Fix() {
   }
 
   if (!record) {
-    return <div className="page narrow"><div className="row"><span className="spinner" /><span className="muted">Carregando…</span></div></div>
+    return <div className="page narrow"><div className="row"><span className="spinner" /><span className="muted">Loading…</span></div></div>
   }
 
   const push = async () => {
-    if (!confirm(`Criar branch revai/fix-${record.slug} e fazer push? (isto cria commits no remoto)`)) return
+    if (!confirm(`Create branch revai/fix-${record.slug} and push? (this creates commits on the remote)`)) return
     try {
       const r = await post<{ branch: string }>(`/reviews/${record.id}/push`)
-      toast(`Push em ${r.branch} concluído`, 'ok')
+      toast(`Push to ${r.branch} completed`, 'ok')
     } catch (e: any) {
-      toast(`push falhou: ${e.message}`, 'err')
+      toast(`push failed: ${e.message}`, 'err')
     }
   }
 
   const discard = async () => {
-    if (!confirm('Descartar as correções aplicadas no clone?')) return
+    if (!confirm('Discard the fixes applied to the clone?')) return
     await post(`/reviews/${record.id}/reset`)
-    toast('Alterações descartadas (git reset --hard)', 'ok')
+    toast('Changes discarded (git reset --hard)', 'ok')
     nav(`/report/${record.id}`)
   }
 
@@ -139,7 +139,7 @@ export default function Fix() {
               </div>
             ))}
           </div>
-          <Stepper steps={[{ id: 'loop', label: 'Aplicando correções + testes', status: 'running' }]} />
+          <Stepper steps={[{ id: 'loop', label: 'Applying fixes + tests', status: 'running' }]} />
         </>
       )}
 
@@ -147,19 +147,19 @@ export default function Fix() {
         <div className="col" style={{ gap: 16 }}>
           {gate && (
             <div className="card pad col">
-              <b className="small">Delta do Quality Gate</b>
+              <b className="small">Quality Gate delta</b>
               <div className="row">
-                <GateMini label="antes" gate={gate.before} />
+                <GateMini label="before" gate={gate.before} />
                 <span aria-hidden="true">→</span>
-                <GateMini label="depois" gate={gate.after} />
+                <GateMini label="after" gate={gate.after} />
               </div>
-              {gate.after.status === 'passed' && <div className="callout ok"><Icon name="check" /><span className="small"><b>Quality Gate passou.</b> Pronto para merge.</span></div>}
+              {gate.after.status === 'passed' && <div className="callout ok"><Icon name="check" /><span className="small"><b>Quality Gate passed.</b> Ready to merge.</span></div>}
             </div>
           )}
           <div className="card pad col small">
-            <b>Resultados</b>
-            <div className="row"><span className="dot ok" /> aplicados: <span className="mono">{applied.join(', ') || '—'}</span></div>
-            <div className="row"><span className="dot crit" /> falhados: <span className="mono">{failed.join(', ') || '—'}</span></div>
+            <b>Results</b>
+            <div className="row"><span className="dot ok" /> applied: <span className="mono">{applied.join(', ') || '—'}</span></div>
+            <div className="row"><span className="dot crit" /> failed: <span className="mono">{failed.join(', ') || '—'}</span></div>
           </div>
         </div>
       )}
@@ -167,7 +167,7 @@ export default function Fix() {
       {status === 'error' && info && (
         <div className="callout err"><Icon name="alert" /><span><b>{info.code}</b><br /><span className="small">{info.message}</span>{info.detail && <div className="mono small faint" style={{ whiteSpace: 'pre-wrap' }}>{info.detail}</div>}</span></div>
       )}
-      {status === 'cancelled' && <div className="callout warn"><Icon name="alert" /><span className="small">Execução interrompida — alterações parciais ficam no clone.</span></div>}
+      {status === 'cancelled' && <div className="callout warn"><Icon name="alert" /><span className="small">Run interrupted — partial changes remain in the clone.</span></div>}
 
       <div style={{ marginTop: 18 }}>
         <Terminal lines={logs} />
@@ -177,17 +177,17 @@ export default function Fix() {
             style={{ width: '100%', marginTop: 10, justifyContent: 'center' }}
             disabled={discarding || !jobId}
             onClick={async () => {
-              if (!confirm('Cancelar o fix em execução e descartar as alterações já aplicadas?')) return
+              if (!confirm('Cancel the running fix and discard the changes already applied?')) return
               setDiscarding(true)
               try {
                 if (jobId) await post(`/jobs/${jobId}/cancel`)
-                // o stream emite 'cancelled' e o handler acima faz o reset --hard
-              } catch { /* stream pode ter encerrado antes */ } finally {
+                // the stream emits 'cancelled' and the handler above does the reset --hard
+              } catch { /* the stream may have ended before */ } finally {
                 setDiscarding(false)
               }
             }}
           >
-            <Icon name="trash" /> {discarding ? 'Cancelando e descartando…' : 'Cancelar e descartar alterações em execução'}
+            <Icon name="trash" /> {discarding ? 'Cancelling and discarding…' : 'Cancel and discard changes in progress'}
           </button>
         )}
       </div>
@@ -195,13 +195,13 @@ export default function Fix() {
       {status !== 'running' && (
         <div className="col" style={{ gap: 10, marginTop: 18 }}>
           <div className="row" style={{ flexWrap: 'wrap' }}>
-            <button className="btn" onClick={() => void push()}><Icon name="branch" /> Criar branch e fazer push revai/fix-{record.slug}</button>
-            {patchName && <a className="btn" href={`/api/reviews/${record.id}/artifacts/fixpatch`}><Icon name="download" /> Baixar .patch</a>}
-            <button className="btn" onClick={async () => { const r = await post<{ editor?: string }>(`/reviews/${record.id}/open-editor`); toast(`aberto no ${r.editor ?? 'explorer'}`) }}><Icon name="terminal" /> Abrir clone no editor</button>
-            <button className="btn danger ghost" onClick={() => void discard()}><Icon name="trash" /> Descartar correções</button>
+            <button className="btn" onClick={() => void push()}><Icon name="branch" /> Create branch and push revai/fix-{record.slug}</button>
+            {patchName && <a className="btn" href={`/api/reviews/${record.id}/artifacts/fixpatch`}><Icon name="download" /> Download .patch</a>}
+            <button className="btn" onClick={async () => { const r = await post<{ editor?: string }>(`/reviews/${record.id}/open-editor`); toast(`opened in ${r.editor ?? 'explorer'}`) }}><Icon name="terminal" /> Open clone in editor</button>
+            <button className="btn danger ghost" onClick={() => void discard()}><Icon name="trash" /> Discard fixes</button>
           </div>
           <div>
-            <Link className="btn primary" to={`/report/${record.id}`}>← Voltar ao relatório</Link>
+            <Link className="btn primary" to={`/report/${record.id}`}>← Back to report</Link>
           </div>
         </div>
       )}
@@ -221,5 +221,5 @@ function GateMini({ label, gate }: { label: string; gate: Gate }) {
 function GateBadgeInline({ gate }: { gate: Gate }) {
   return gate.status === 'passed'
     ? <span className="badge ok"><span className="dot ok" />Passed</span>
-    : <span className="badge crit"><span className="dot crit" />Failed · {gate.criticalOpen} crítico(s)</span>
+    : <span className="badge crit"><span className="dot crit" />Failed · {gate.criticalOpen} critical(s)</span>
 }

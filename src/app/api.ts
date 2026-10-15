@@ -1,4 +1,4 @@
-// cliente da API local + SSE (stream de eventos do server)
+// local API client + SSE (server event stream)
 export class ApiError extends Error {
   constructor(public code: string, message: string, public detail?: string) {
     super(message)
@@ -14,10 +14,10 @@ async function call<T>(path: string, method: string, body?: unknown): Promise<T>
       body: body ? JSON.stringify(body) : undefined,
     })
   } catch {
-    // TypeError: Failed to fetch — API local inacessível
+    // TypeError: Failed to fetch — local API unreachable
     throw new ApiError(
       'server/offline',
-      'Servidor local não respondeu. Rode `npm start` na raiz do projeto (porta 8797) e recarregue esta página.',
+      'Local server did not respond. Run `npm start` in the project root (port 8797) and reload this page.',
     )
   }
   let data: any = {}
@@ -34,7 +34,7 @@ export const put = <T>(path: string, body?: unknown) => call<T>(path, 'PUT', bod
 export const patch = <T>(path: string, body?: unknown) => call<T>(path, 'PATCH', body ?? {})
 export const del = <T>(path: string) => call<T>(path, 'DELETE')
 
-/** POST com resposta SSE — eventos separados por "\n\n", payload em `data: …`. */
+/** POST with SSE response — events separated by "\n\n", payload in `data: …`. */
 export async function sse<T>(
   path: string,
   body: unknown,
@@ -53,7 +53,7 @@ export async function sse<T>(
     if (e?.name === 'AbortError') throw e
     throw new ApiError(
       'server/offline',
-      'Servidor local não respondeu. Rode `npm start` na raiz do projeto (porta 8797) e recarregue esta página.',
+      'Local server did not respond. Run `npm start` in the project root (port 8797) and reload this page.',
     )
   }
   if (!res.ok || !res.body) {
@@ -75,7 +75,7 @@ export async function sse<T>(
       if (!line) continue
       try {
         onEvent(JSON.parse(line.slice(5).trim()) as T)
-      } catch { /* fragmento inválido */ }
+      } catch { /* invalid fragment */ }
     }
   }
 }

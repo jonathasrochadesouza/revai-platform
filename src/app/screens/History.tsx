@@ -1,4 +1,4 @@
-// 07-history — lista com filtros (gate, repo, busca)
+// 07-history — list with filters (gate, repo, search)
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon, GateBadge, relTime, fmtDur } from '../ui'
@@ -27,33 +27,33 @@ export default function History() {
   return (
     <div className="page">
       <h1>Reviews</h1>
-      <p className="lede">Tudo que rodou na plataforma, com resultado do Quality Gate.</p>
+      <p className="lede">Everything that has run on the platform, with its Quality Gate result.</p>
 
       <div className="row" style={{ flexWrap: 'wrap', marginBottom: 18 }}>
         <div className="seg">
           {(['all', 'failed', 'passed'] as const).map((g) => (
             <button key={g} aria-pressed={fGate === g} onClick={() => setFGate(g)}>
-              {g === 'all' ? 'Todas' : g === 'failed' ? 'Failed' : 'Passed'}
+              {g === 'all' ? 'All' : g === 'failed' ? 'Failed' : 'Passed'}
             </button>
           ))}
         </div>
         <select className="select" value={repo} onChange={(e) => setRepo(e.target.value)}>
-          <option value="all">Todos os repositórios</option>
+          <option value="all">All repositories</option>
           {repos.map((r) => <option key={r} value={r}>{r}</option>)}
         </select>
         <div className="input" style={{ flex: 1, minWidth: 180 }}>
           <Icon name="search" />
-          <input placeholder="Buscar repo, branch, PR…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <input placeholder="Search repo, branch, PR…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <button className="btn ghost sm" onClick={() => void load()}><Icon name="refresh" /> Atualizar</button>
+        <button className="btn ghost sm" onClick={() => void load()}><Icon name="refresh" /> Refresh</button>
       </div>
 
-      {rows === null && <div className="row"><span className="spinner" /><span className="muted">Carregando…</span></div>}
+      {rows === null && <div className="row"><span className="spinner" /><span className="muted">Loading…</span></div>}
 
       {rows !== null && filtered.length === 0 && (
         <div className="empty">
-          <div className="big">Nenhum review ainda</div>
-          Comece em <Link to="/new">Nova review</Link>.
+          <div className="big">No reviews yet</div>
+          Start from <Link to="/new">New review</Link>.
         </div>
       )}
 
@@ -66,8 +66,8 @@ export default function History() {
                 {r.repoLabel}{r.prNumber ? ` · PR #${r.prNumber}` : ''} · {r.head}
               </span>
               <span className="small faint">
-                {r.critical > 0 && <>{r.critical} crítico(s) · </>}
-                {r.open} aberta(s) · {r.harnessName}{r.model ? ` · ${r.model}` : ''}
+                {r.critical > 0 && <>{r.critical} critical(s) · </>}
+                {r.open} open · {r.harnessName}{r.model ? ` · ${r.model}` : ''}
               </span>
             </span>
             <span className="small muted num">{fmtDur(r.durationMs)}</span>

@@ -1,4 +1,4 @@
-// 01-onboarding — detecção + validação de harnesses locais (tela standalone)
+// 01-onboarding — detection + validation of local harnesses (standalone screen)
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon, relTime } from '../ui'
@@ -66,10 +66,10 @@ export default function Onboarding() {
 
   const status = (h: OnboardingHarness): { dot: string; txt: string } => {
     switch (h.status) {
-      case 'ready': return { dot: 'ok', txt: 'Pronto' }
-      case 'found': return { dot: 'off', txt: 'Encontrado — valide para usar' }
-      case 'unvalidated': return { dot: 'off', txt: 'Valide para usar' }
-      default: return { dot: 'off', txt: 'não encontrado no PATH' }
+      case 'ready': return { dot: 'ok', txt: 'Ready' }
+      case 'found': return { dot: 'off', txt: 'Found — validate to use' }
+      case 'unvalidated': return { dot: 'off', txt: 'Validate to use' }
+      default: return { dot: 'off', txt: 'not found in PATH' }
     }
   }
 
@@ -79,8 +79,8 @@ export default function Onboarding() {
         <div className="row" style={{ gap: 12 }}>
           <img src="/logo.png" alt="" style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg-3)' }} />
           <div>
-            <div className="row" style={{ gap: 8 }}><b style={{ fontSize: 17 }}>revai</b><span className="badge">primeiro setup</span></div>
-            <div className="small muted">Detectamos os harnesses locais que podem rodar a skill revai.</div>
+            <div className="row" style={{ gap: 8 }}><b style={{ fontSize: 17 }}>revai</b><span className="badge">first setup</span></div>
+            <div className="small muted">We detected the local harnesses that can run the revai skill.</div>
           </div>
         </div>
 
@@ -103,20 +103,20 @@ export default function Onboarding() {
                     <span className="row" style={{ gap: 8 }}>
                       <b>{h.name}</b>
                       {h.version && <span className="mono num">{h.version}</span>}
-                      {h.isDefault && <span className="badge accent">Padrão</span>}
-                      {h.status === 'ready' && <span className="badge ok"><span className="dot ok" />Validado {h.validatedAt ? relTime(h.validatedAt) : ''}</span>}
+                      {h.isDefault && <span className="badge accent">Default</span>}
+                      {h.status === 'ready' && <span className="badge ok"><span className="dot ok" />Validated {h.validatedAt ? relTime(h.validatedAt) : ''}</span>}
                     </span>
                     <span className="small muted mono">{h.exe ?? h.detail}</span>
-                    {v && !v.ok && <span className="small" style={{ color: 'var(--crit)' }}>verificação falhou — veja o checklist abaixo</span>}
+                    {v && !v.ok && <span className="small" style={{ color: 'var(--crit)' }}>validation failed — see the checklist below</span>}
                   </span>
                   <span className="btn sm ghost" style={{ pointerEvents: 'auto' }}
                     onClick={(e) => { e.preventDefault(); void validate(h.id) }}>
-                    {validating[h.id] ? <span className="spinner" /> : <Icon name="refresh" />} Validar
+                    {validating[h.id] ? <span className="spinner" /> : <Icon name="refresh" />} Validate
                   </span>
                 </label>
                 {v && (
                   <details className="pad" style={{ background: 'var(--bg-2)' }}>
-                    <summary className="small muted" style={{ cursor: 'pointer' }}>Checklist de validação</summary>
+                    <summary className="small muted" style={{ cursor: 'pointer' }}>Validation checklist</summary>
                     <div className="col" style={{ paddingTop: 10 }}>
                       {(v.items ?? []).map((it) => (
                         <div key={it.key} className="row small" style={{ gap: 8 }}>
@@ -134,31 +134,31 @@ export default function Onboarding() {
           })}
         </div>
 
-        {!data?.harnesses.length && <div className="callout warn"><Icon name="alert" /><span>Procurando CLIs locais…</span></div>}
+        {!data?.harnesses.length && <div className="callout warn"><Icon name="alert" /><span>Looking for local CLIs…</span></div>}
 
         <div className="card pad col">
           <div className="row">
-            <b className="small">Adicionar caminho manual</b>
-            <input className="input" style={{ height: 30 }} placeholder="nome (ex.: aider)" value={manualName} onChange={(e) => setManualName(e.target.value)} />
-            <input className="input" style={{ flex: 2, height: 30 }} placeholder="caminho do executável" value={manualPath} onChange={(e) => setManualPath(e.target.value)} />
-            <button className="btn sm" onClick={() => void addManual()}>Adicionar</button>
+            <b className="small">Add manual path</b>
+            <input className="input" style={{ height: 30 }} placeholder="name (e.g. aider)" value={manualName} onChange={(e) => setManualName(e.target.value)} />
+            <input className="input" style={{ flex: 2, height: 30 }} placeholder="executable path" value={manualPath} onChange={(e) => setManualPath(e.target.value)} />
+            <button className="btn sm" onClick={() => void addManual()}>Add</button>
           </div>
         </div>
 
         <div className="card pad col small">
-          <div className="row"><Icon name="shield" /> Requisitos</div>
+          <div className="row"><Icon name="shield" /> Requirements</div>
           <div className="kv">
-            <dt>Git</dt><dd className="num">{data?.runtime.git ?? 'detectando…'}</dd>
-            <dt>Node</dt><dd className="num">{data?.runtime.node ?? 'detectando…'}</dd>
-            <dt>Dados</dt><dd className="mono small">{data?.runtime.revaiDir ?? '~/.revai'}</dd>
-            <dt>Servidor</dt><dd>Rodando em 127.0.0.1 — nada sai da sua máquina</dd>
+            <dt>Git</dt><dd className="num">{data?.runtime.git ?? 'detecting…'}</dd>
+            <dt>Node</dt><dd className="num">{data?.runtime.node ?? 'detecting…'}</dd>
+            <dt>Data</dt><dd className="mono small">{data?.runtime.revaiDir ?? '~/.revai'}</dd>
+            <dt>Server</dt><dd>Running on 127.0.0.1 — nothing leaves your machine</dd>
           </div>
         </div>
 
         <div className="row">
-          <button className="btn ghost" onClick={() => nav('/')}>Pular</button>
+          <button className="btn ghost" onClick={() => nav('/')}>Skip</button>
           <button className="btn primary lg" disabled={!sel || busy} onClick={() => void continueFlow()} style={{ flex: 1 }}>
-            Continuar com {data?.harnesses.find((h) => h.id === sel)?.name ?? 'harness'} {busy && <span className="spinner" />}
+            Continue with {data?.harnesses.find((h) => h.id === sel)?.name ?? 'harness'} {busy && <span className="spinner" />}
           </button>
         </div>
       </div>

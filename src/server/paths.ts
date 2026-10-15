@@ -18,6 +18,6 @@ export function repoPath(host: string, org: string, name: string): string {
 }
 
 export function recordDir(id: string): string {
-  if (!/^[\w-]+$/.test(id)) throw new Error('id inválido')
+  if (!/^[\w-]+$/.test(id)) throw new Error('invalid id')
   return path.join(REVIEWS_DIR, id)
 }

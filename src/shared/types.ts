@@ -1,5 +1,5 @@
-// Contrato de dados da plataforma — espelha o schema V2 da skill (skill-version/revai).
-// Severidades/esforços/categorias válidos, findings, meta e Quality Gate.
+// Platform data contract — mirrors the skill's V2 schema (skill-version/revai).
+// Valid severities/efforts/categories, findings, meta and Quality Gate.
 
 export type Severity = 'critical' | 'major' | 'minor' | 'trivial'
 export type Category = 'security' | 'performance' | 'stability' | 'data-integrity'
@@ -19,12 +19,12 @@ export interface Finding {
   file: string
   lines: string
   severity?: Severity
-  priority?: Severity // legado; mapeado via PRIORITY_MAP
+  priority?: Severity // legacy; mapped via PRIORITY_MAP
   effort: Effort
   status: FindingStatus
   category?: Category
   rationale?: string
-  copilotSummary?: string // legado
+  copilotSummary?: string // legacy
   proposedFix?: ProposedFix
 }
 
@@ -52,12 +52,12 @@ export interface Gate {
   actionableOpen: number
 }
 
-// ── Fontes ────────────────────────────────────────────────────────────────
+// ── Sources ────────────────────────────────────────────────────────────────
 export interface ParsedRef {
-  value: string // branch, pull/<n>/head ou sha
+  value: string // branch, pull/<n>/head or sha
   kind: 'branch' | 'pr' | 'sha'
   prNumber?: number
-  label: string // ex. "feature/PEQ-2450" ou "PR #482"
+  label: string // e.g. "feature/PEQ-2450" or "PR #482"
 }
 
 export interface ParsedSource {
@@ -66,7 +66,7 @@ export interface ParsedSource {
   host: string
   org: string
   repo: string
-  url?: string // URL de clone normalizada
+  url?: string // normalized clone URL
   ref?: ParsedRef
   raw: string
 }
@@ -75,9 +75,9 @@ export interface ParsedSource {
 export interface HarnessDef {
   id: string
   name: string
-  cli: string // nome do executável para "where/which"
-  logo: string // 1–2 letras para o tile
-  models: string[] // ['auto', …] — 'Padrão do harness (auto)' é o host: 'auto'
+  cli: string // executable name for "where/which"
+  logo: string // 1–2 letters for the tile
+  models: string[] // ['auto', …] — the label 'Harness default (auto)' is the host: 'auto'
 }
 
 export interface ValidationItem {
@@ -96,9 +96,9 @@ export interface HarnessValidation {
 
 export interface HarnessState {
   defId: string // 'kiro' | 'claude' | … | 'custom-<slug>'
-  customName?: string // para custom-*
-  exe?: string // caminho resolvido/override
-  model?: string // 'auto' | id do modelo
+  customName?: string // for custom-*
+  exe?: string // resolved path/override
+  model?: string // 'auto' | model id
   isDefault?: boolean
   lastValidation?: HarnessValidation
   customArgs?: { review?: string[]; fix?: string[]; test?: string[] } // templates {exe} {prompt} {model}
@@ -127,7 +127,7 @@ export interface RuntimeInfo {
   revaiDir: string
 }
 
-// ── Preparação de projeto (tela 03) ───────────────────────────────────────
+// ── Project preparation (screen 03) ───────────────────────────────────────
 export interface FileStat {
   path: string
   added: number
@@ -145,12 +145,12 @@ export interface RulesInfo {
 export interface Prepared {
   repoDir: string
   label: string // "github.com/acme/checkout-api"
-  head: string // rótulo exibido
-  headBranch: string // branch local no clone
+  head: string // display label
+  headBranch: string // local branch in the clone
   refKind: 'branch' | 'pr' | 'sha' | 'working-tree'
   base: string
   baseSuggestions: string[] // ["main (origin/HEAD)", "develop", …]
-  branches: string[] // refs origin/* disponíveis
+  branches: string[] // available origin/* refs
   files: FileStat[]
   filesChanged: number
   additions: number
@@ -189,7 +189,7 @@ export interface ReviewRecord {
   rules: RulesInfo
   meta?: ReviewMeta
   findings: Finding[]
-  skipped: string[] // ids "pulados" (bloqueio dispensado)
+  skipped: string[] // "skipped" ids (blocker waived)
   gate: Gate
   artifacts: { patch?: string; html?: string; reviewJson?: string; metaJson?: string; fixPatch?: string }
   fixApplied?: string[]
@@ -220,7 +220,7 @@ export interface Settings {
   cloneRetentionDays: 0 | 7 | 30
 }
 
-// ── Eventos SSE ───────────────────────────────────────────────────────────
+// ── SSE events ───────────────────────────────────────────────────────────
 export type StepId = 'clone' | 'patch' | 'analyze' | 'capture' | 'validate' | 'assemble'
 
 export type SseEvent =
@@ -239,7 +239,7 @@ export interface RunReviewBody {
   base: string
   harnessId: string
   model?: string
-  rules?: string // regras extras coladas na tela 03 (futuro)
+  rules?: string // extra rules pasted in screen 03 (future)
 }
 
 export type FixItemId = string

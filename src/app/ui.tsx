@@ -1,9 +1,9 @@
-// Componentes compartilhados — mesma linguagem visual do protótipo.
+// Shared components — same visual language as the prototype.
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Finding, Gate, Severity } from '../shared/types'
 import { PRIORITY_MAP } from '../shared/gate'
 
-// ── Icon sprite (mesmos paths do prototype/app.js) ────────────────────────
+// ── Icon sprite (same paths as prototype/app.js) ────────────────────────
 const P: Record<string, string> = {
   plus: '<path d="M12 5v14M5 12h14"/>',
   list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
@@ -70,7 +70,7 @@ export function GateBadge({ status }: { status: 'passed' | 'failed' }) {
     : <span className="badge crit"><span className="dot crit" />Failed</span>
 }
 
-// ── Botões/seg/field ─────────────────────────────────────────────────────
+// ── Buttons/seg/field ─────────────────────────────────────────────────────
 export function Seg<T extends string>({ value, options, onChange }: {
   value: T
   options: { value: T; label: string }[]
@@ -87,7 +87,7 @@ export function Seg<T extends string>({ value, options, onChange }: {
   )
 }
 
-// ── Terminal com auto-scroll ─────────────────────────────────────────────
+// ── Terminal with auto-scroll ─────────────────────────────────────────────
 export interface LogLine { stream: string; line: string; cls?: string }
 
 export function Terminal({ lines, className }: { lines: LogLine[]; className?: string }) {
@@ -98,7 +98,7 @@ export function Terminal({ lines, className }: { lines: LogLine[]; className?: s
   }, [lines.length])
   return (
     <div ref={ref} className={`terminal ${className ?? ''}`} style={{ minHeight: 220, maxHeight: 340, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-      {lines.length === 0 && <div><span className="t-dim">aguardando…</span></div>}
+      {lines.length === 0 && <div><span className="t-dim">waiting…</span></div>}
       {lines.map((l, i) => (
         <div key={i} className={l.cls ?? (l.stream === 'git' ? 't-dim' : l.stream === 'script' ? 't-acc' : l.stream === 'tests' ? 't-ok' : '')}>
           {l.line}
@@ -108,16 +108,16 @@ export function Terminal({ lines, className }: { lines: LogLine[]; className?: s
   )
 }
 
-// ── Code diff (before/after da proposedFix) ──────────────────────────────
+// ── Code diff (proposedFix before/after) ──────────────────────────────
 export function CodeDiff({ before, after, maxHeight }: { before: string[]; after: string[]; maxHeight?: number }) {
   let n = 0
   return (
     <div className="code" style={maxHeight ? { maxHeight, overflow: 'auto' } : undefined}>
-      {(before ?? []).length > 0 && <div className="ln" style={{ color: 'var(--fg-3)', fontSize: 11 }}>ANTES</div>}
+      {(before ?? []).length > 0 && <div className="ln" style={{ color: 'var(--fg-3)', fontSize: 11 }}>BEFORE</div>}
       {(before ?? []).map((l) => (
         <div key={`d${n++}`} className="ln del"><i>{n - 1}</i><span>{l || ' '}</span></div>
       ))}
-      {(after ?? []).length > 0 && <div className="ln" style={{ color: 'var(--fg-3)', fontSize: 11 }}>DEPOIS</div>}
+      {(after ?? []).length > 0 && <div className="ln" style={{ color: 'var(--fg-3)', fontSize: 11 }}>AFTER</div>}
       {(after ?? []).map((l) => (
         <div key={`a${n++}`} className="ln add"><i>{n - 1}</i><span>{l || ' '}</span></div>
       ))}
@@ -141,7 +141,7 @@ export function GatePanel({ gate }: { gate: Gate }) {
         ))}
       </ul>
       {!!gate.skippedBlockers && (
-        <div className="small muted">Você pulou um bloqueador — o Gate passou, mas registre a decisão.</div>
+        <div className="small muted">You skipped a blocker — the Gate passed, but record the decision.</div>
       )}
     </div>
   )
@@ -197,13 +197,13 @@ export function ToastHost({ children }: { children: ReactNode }) {
   )
 }
 
-// ── Utilidades de formatação ─────────────────────────────────────────────
+// ── Formatting utilities ─────────────────────────────────────────────
 export function relTime(ts: number): string {
   const d = Math.round((Date.now() - ts) / 1000)
-  if (d < 60) return 'agora'
-  if (d < 3600) return `há ${Math.floor(d / 60)} min`
-  if (d < 86400) return `há ${Math.round(d / 3600)} h`
-  return `há ${Math.round(d / 86400)} dias`
+  if (d < 60) return 'now'
+  if (d < 3600) return `${Math.floor(d / 60)} min ago`
+  if (d < 86400) return `${Math.round(d / 3600)} h ago`
+  return `${Math.round(d / 86400)} days ago`
 }
 
 export function fmtDur(ms: number): string {

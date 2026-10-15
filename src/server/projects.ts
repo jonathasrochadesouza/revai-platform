@@ -1,4 +1,4 @@
-// Resolução de origem + arranjo de clone no cache ~/.revai/repos + preparo da tela 03.
+// Source resolution + clone staging in the ~/.revai/repos cache + prep for screen 03.
 import fs from 'node:fs'
 import path from 'node:path'
 import { parseSource } from '../shared/urls'
@@ -24,14 +24,14 @@ function tailOf(s: string, n = 3): string {
 export async function resolveSource(input: string): Promise<{ parsed: ParsedSource; info: ResolveResult }> {
   const parsed = parseSource(input)
   if (parsed.kind === 'folder') {
-    if (!exists(parsed.repo)) throw new AppError('source/unrecognized', 'Pasta inexistente', parsed.repo)
-    if (!(await g.isGitDir(parsed.repo))) throw new AppError('repo/not-git', 'A pasta não contém um repositório git')
+    if (!exists(parsed.repo)) throw new AppError('source/unrecognized', 'Folder does not exist', parsed.repo)
+    if (!(await g.isGitDir(parsed.repo))) throw new AppError('repo/not-git', 'The folder does not contain a git repository')
     const branch = await g.currentBranch(parsed.repo)
     return {
       parsed,
       info: {
         accessible: true,
-        message: 'Pasta local válida',
+        message: 'Valid local folder',
         defaultBranch: branch ?? undefined,
         headHint: branch ? { label: branch, ref: branch } : undefined,
       },
@@ -41,14 +41,14 @@ export async function resolveSource(input: string): Promise<{ parsed: ParsedSour
   const r = await g.git(['ls-remote', '--symref', parsed.url!, 'HEAD'], undefined, 45_000)
   if (r.code !== 0) {
     const tail = tailOf(r.stderr, 2)
-    throw new AppError('repo/inaccessible', 'Não foi possível ler o repositório remoto.', tail || undefined, 404)
+    throw new AppError('repo/inaccessible', 'Could not read the remote repository', tail || undefined, 404)
   }
   const symref = /ref: refs\/heads\/([^\t]+)\tHEAD/.exec(r.stdout)?.[1]?.trim()
   return {
     parsed,
     info: {
       accessible: true,
-      message: parsed.ref ? `Ref detectada: ${parsed.ref.kind}` : 'Repositório acessível',
+      message: parsed.ref ? `Detected ref: ${parsed.ref.kind}` : 'Repository accessible',
       defaultBranch: symref,
       headHint: parsed.ref
         ? { label: parsed.ref.label, ref: parsed.ref.value }
@@ -95,7 +95,7 @@ export function detectTestCommand(dir: string): { argv: string[]; label: string 
   return null
 }
 
-/** clone/fetch com streaming de progresso */
+/** clone/fetch with progress streaming */
 async function setupClone(parsed: ParsedSource, onLine: (l: string) => void): Promise<string> {
   fs.mkdirSync(REPOS_DIR, { recursive: true })
   const dir = repoPath(parsed.host, parsed.org, parsed.repo)
@@ -104,17 +104,17 @@ async function setupClone(parsed: ParsedSource, onLine: (l: string) => void): Pr
     const r = await g.gitStream(['clone', '--progress', parsed.url!, dir], undefined, onLine, 600_000)
     if (r.code !== 0) {
       const tail = tailOf(r.stderr)
-      try { fs.rmSync(dir, { recursive: true, force: true }) } catch { /* ignora */ }
-      throw new AppError('repo/inaccessible', `clone falhou para ${parsed.url}`, tail, 404)
+      try { fs.rmSync(dir, { recursive: true, force: true }) } catch { /* ignored */ }
+      throw new AppError('repo/inaccessible', `Clone failed for ${parsed.url}`, tail, 404)
     }
-    onLine(`clone pronto → ${dir}`)
+    onLine(`Clone ready → ${dir}`)
     return dir
   }
   const r = await g.gitStream(['fetch', 'origin', '--prune', '--tags', '--progress'], dir, onLine, 600_000)
   if (r.code !== 0) {
-    throw new AppError('repo/inaccessible', 'fetch falhou — confira as credenciais do sistema', tailOf(r.stderr), 404)
+    throw new AppError('repo/inaccessible', 'Fetch failed — check the system credentials', tailOf(r.stderr), 404)
   }
-  onLine('fetch atualizado')
+  onLine('Fetch up to date')
   return dir
 }
 
@@ -129,12 +129,12 @@ async function checkoutHead(
     const value = /HEAD branch: ([^\s]+)/.exec(r0.stdout)?.[1] ?? 'main'
     const r = await g.git(['checkout', '-B', value, `origin/${value}`], dir)
     onLine(`checkout default: ${value}`)
-    if (r.code !== 0) throw new AppError('repo/head-not-found', 'Falha na branch padrão', tailOf(r.stderr), 404)
+    if (r.code !== 0) throw new AppError('repo/head-not-found', 'Failed to check out the default branch', tailOf(r.stderr), 404)
     return { headBranch: value, refKind: 'branch' }
   }
   if (ref.kind === 'branch') {
     const r = await g.gitStream(['checkout', '-B', ref.value, `origin/${ref.value}`, '--progress'], dir, onLine, 300_000)
-    if (r.code !== 0) throw new AppError('repo/head-not-found', 'Branch não encontrada no remote', ref.value, 404)
+    if (r.code !== 0) throw new AppError('repo/head-not-found', 'Branch not found on the remote', ref.value, 404)
     return { headBranch: ref.value, refKind: 'branch' }
   }
   if (ref.kind === 'pr') {
@@ -146,19 +146,19 @@ async function checkoutHead(
     for (const spec of specs) {
       const r = await g.gitStream(['fetch', 'origin', `${spec}:${local}`, '--progress'], dir, onLine, 600_000)
       if (r.code === 0) { ok = true; break }
-      onLine(`refspec ${spec} indisponível, tentando alternativa…`)
+      onLine(`refspec ${spec} unavailable, trying alternative…`)
     }
-    if (!ok) throw new AppError('repo/head-not-found', `PR/MR #${ref.prNumber} não encontrado no remote`)
+    if (!ok) throw new AppError('repo/head-not-found', `PR/MR #${ref.prNumber} not found on the remote`)
     const co = await g.git(['checkout', '-B', local], dir)
-    if (co.code !== 0) throw new AppError('repo/head-not-found', 'Falha no checkout do PR', tailOf(co.stderr), 404)
+    if (co.code !== 0) throw new AppError('repo/head-not-found', 'Failed to check out the PR', tailOf(co.stderr), 404)
     return { headBranch: local, refKind: 'pr' }
   }
   // sha
   const local = `revai-${ref.value.slice(0, 7)}`
   const r = await g.git(['rev-parse', '--verify', `${ref.value}^{commit}`], dir)
-  if (r.code !== 0) throw new AppError('repo/head-not-found', 'Commit não encontrado', ref.value, 404)
+  if (r.code !== 0) throw new AppError('repo/head-not-found', 'Commit not found', ref.value, 404)
   const co = await g.git(['checkout', '-B', local, ref.value], dir)
-  if (co.code !== 0) throw new AppError('repo/head-not-found', 'Falha no checkout do commit', tailOf(co.stderr), 404)
+  if (co.code !== 0) throw new AppError('repo/head-not-found', 'Failed to check out the commit', tailOf(co.stderr), 404)
   return { headBranch: local, refKind: 'sha' }
 }
 
@@ -173,11 +173,11 @@ export async function prepare(parsed: ParsedSource, onLine: (l: string) => void)
 
   if (parsed.kind === 'folder') {
     repoDir = parsed.repo
-    if (!(await g.isGitDir(repoDir))) throw new AppError('repo/not-git', 'A pasta não contém um repositório git', repoDir)
+    if (!(await g.isGitDir(repoDir))) throw new AppError('repo/not-git', 'The folder does not contain a git repository', repoDir)
     headBranch = (await g.currentBranch(repoDir)) ?? 'HEAD'
     headLabel = headBranch
     refKind = 'working-tree'
-    onLine(`pasta local: ${repoDir}`)
+    onLine(`Local folder: ${repoDir}`)
     branches = (await g.remoteBranches(repoDir)).map((b) => b.replace(/^origin\//, ''))
   } else {
     repoDir = await setupClone(parsed, onLine)

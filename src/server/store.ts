@@ -1,5 +1,5 @@
-// Storage legível em ~/.revai — settings.json, harnesses.json, reviews/index.json
-// e reviews/<id>/record.json (+ artefatos copiados da skill). Escrita atômica.
+// Human-readable storage in ~/.revai — settings.json, harnesses.json, reviews/index.json
+// and reviews/<id>/record.json (+ artifacts copied from the skill). Atomic writes.
 import fs from 'node:fs'
 import path from 'node:path'
 import { REVAI_DIR, REVIEWS_DIR, recordDir } from './paths'
@@ -10,7 +10,7 @@ function readJson<T>(file: string, fallback: T): T {
   try {
     const parsed = JSON.parse(fs.readFileSync(file, 'utf8'))
     if (Array.isArray(fallback)) {
-      // array persistido pode ter sido corrompido por spread (chaves numéricas) — normaliza
+      // a persisted array may have been corrupted by spread (numeric keys) — normalize
       if (Array.isArray(parsed)) return parsed as T
       if (parsed && typeof parsed === 'object') return Object.values(parsed) as unknown as T
       return fallback
@@ -102,6 +102,6 @@ export function loadRecord(id: string): ReviewRecord | null {
 export function deleteRecord(id: string) {
   try {
     fs.rmSync(recordDir(id), { recursive: true, force: true })
-  } catch { /* já removido */ }
+  } catch { /* already removed */ }
   saveIndex(readIndex().filter((r) => r.id !== id))
 }

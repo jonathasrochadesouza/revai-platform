@@ -1,5 +1,5 @@
-// Harnesses locais — descoberta, validação (checklist com tempos) e templates de invocação.
-// O prompt grande SEMPRE vai via stdin — evita limite de linha de comando no Windows.
+// Local harnesses — discovery, validation (timed checklist) and invocation templates.
+// The large prompt ALWAYS goes via stdin — avoids the Windows command-line limit.
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -32,7 +32,7 @@ function candidates(cli: string): string[] {
   return list
 }
 
-/** resolve o executável: PATH via where/which + caminhos conhecidos + override salvo */
+/** resolves the executable: PATH via where/which + known paths + saved override */
 export async function resolveExe(defId: string, states: HarnessState[] = readHarnessStates()): Promise<string | null> {
   const state = states.find((s) => s.defId === defId)
   if (state?.exe && fs.existsSync(state.exe)) {
@@ -52,7 +52,7 @@ export async function resolveExe(defId: string, states: HarnessState[] = readHar
   const r = await exec(probe, { timeoutMs: 5_000 })
   if (r.code === 0) {
     const lines = r.stdout.split(/\r?\n/).map((s) => s.trim()).filter(Boolean)
-    // Windows: shims sem extensão (~=.cmd do npm) não spawnam — prefere .exe/.cmd/.bat/.com
+    // Windows: shims without an extension (~= npm's .cmd) do not spawn — prefer .exe/.cmd/.bat/.com
     const exe = isWin
       ? lines.find((l) => /\.(exe|com|cmd|bat)$/i.test(l)) ?? (/\.[\w.]+$/.test(lines[0] ?? '') ? lines[0] : undefined)
       : lines[0]
@@ -69,8 +69,8 @@ export interface Invoke {
 }
 
 /**
- * Templates de invocação (review/fix). Editáveis via customArgs em ~/.revai/harnesses.json
- * — tokens: {exe} {prompt} {model}. Sandbox = clone descartável em ~/.revai/repos.
+ * Invocation templates (review/fix). Editable via customArgs in ~/.revai/harnesses.json
+ * — tokens: {exe} {prompt} {model}. Sandbox = disposable clone in ~/.revai/repos.
  */
 export function invoke(
   defId: string,
@@ -118,7 +118,7 @@ export function invoke(
       argv = [exe, ...modelArg('--model'), 'run']
       break
     case 'copilot':
-      argv = [exe, ...modelArg('--model'), '-p'] // experimental — template editável no harnesses.json
+      argv = [exe, ...modelArg('--model'), '-p'] // experimental — template editable in harnesses.json
       break
     case 'kiro':
     default:
@@ -161,7 +161,7 @@ export async function discoverHarnesses(): Promise<OnboardingHarness[]> {
       exe: exe ?? undefined,
       model: state?.model,
       models: def.models,
-      detail: exe ? `${exe}` : 'não encontrado no PATH',
+      detail: exe ? `${exe}` : 'not found in PATH',
       isDefault: state?.isDefault ?? defaultDefId === def.id,
       validatedAt: state?.lastValidation?.at,
       modelName: state?.model && state.model !== 'auto' ? state.model : undefined,
@@ -181,7 +181,7 @@ export async function discoverHarnesses(): Promise<OnboardingHarness[]> {
       status: statusOf(state, exe && fs.existsSync(exe) ? exe : null, version),
       version,
       exe,
-      detail: exe ?? 'executável ausente',
+      detail: exe ?? 'executable missing',
       isDefault: state.isDefault ?? false,
       validatedAt: state.lastValidation?.at,
     })
@@ -195,21 +195,21 @@ export interface ValidateResult {
   items: ValidationItem[]
 }
 
-/** checklist com tempos individualizados, como a tela 08 do protótipo */
+/** checklist with individual timings, like the prototype's screen 08 */
 export async function validateHarness(defId: string): Promise<ValidateResult> {
   const states = readHarnessStates()
   const items: ValidationItem[] = []
   const ms = () => Date.now()
 
-  // 1. encontrado
+  // 1. found
   let t = ms()
   const exe = await resolveExe(defId, states)
   items.push({
     key: 'found',
-    label: 'Encontrado no PATH',
+    label: 'Found in PATH',
     ok: !!exe,
     ms: ms() - t,
-    detail: exe ?? 'nenhum caminho localizado',
+    detail: exe ?? 'no path found',
   })
   if (!exe) {
     persistValidation(defId, items, false, undefined)
@@ -223,18 +223,18 @@ export async function validateHarness(defId: string): Promise<ValidateResult> {
   const version = /v?\d[\w.-]*/.exec(first)?.[0]?.replace(/^v/, '')
   items.push({
     key: 'version',
-    label: `--version (${version ?? 'n/d'})`,
+    label: `--version (${version ?? 'n/a'})`,
     ok: vr.code === 0,
     ms: ms() - t,
     detail: (vr.stdout + vr.stderr).trim().split('\n')[0]?.slice(0, 120),
   })
 
-  // 3. sessão autenticada + 4. prompt de teste — exige linha isolada "OK" e exit 0
-  // (ecos do próprio prompt NÃO contam — evitar falso-positivo como o do codex 401)
+  // 3. authenticated session + 4. test prompt — requires a standalone "OK" line and exit 0
+  // (echoes of the prompt itself do NOT count — avoid the false positive like the codex 401)
   t = ms()
   const inv = invoke(defId, 'review', exe, undefined)
-  const argv2 = finalArgv(inv, 'Responda apenas com a palavra OK.')
-  const tr = await stream(argv2, { cwd: undefined, stdin: inv.stdin ? 'Responda apenas com a palavra OK.' : undefined, timeoutMs: 180_000 })
+  const argv2 = finalArgv(inv, 'Respond with only the word OK.')
+  const tr = await stream(argv2, { cwd: undefined, stdin: inv.stdin ? 'Respond with only the word OK.' : undefined, timeoutMs: 180_000 })
   const all = tr.stdout + '\n' + tr.stderr
   const outOnly = tr.stdout
   const authFail = /not logged in|unauthorized|missing bearer|401|login required|_API_KEY|permission denied/i.test(all)
@@ -242,24 +242,24 @@ export async function validateHarness(defId: string): Promise<ValidateResult> {
   const saidOk = okLine && tr.code === 0 && !authFail
   items.push({
     key: 'session',
-    label: 'Sessão autenticada',
+    label: 'Authenticated session',
     ok: saidOk,
     ms: ms() - t,
-    detail: authFail ? 'não autenticado — executar login do CLI' : saidOk ? 'respondeu OK' : 'sem resposta útil',
+    detail: authFail ? 'not authenticated — run the CLI login' : saidOk ? 'responded OK' : 'no usable response',
   })
   items.push({
     key: 'prompt',
-    label: 'Prompt de teste executado',
+    label: 'Test prompt executed',
     ok: saidOk,
     ms: ms() - t,
     detail: tr.timedOut ? 'timeout' : saidOk ? 'OK' : all.split('\n').filter(Boolean).slice(-1)[0]?.slice(0, 120),
   })
   items.push({
     key: 'scope',
-    label: 'Permissão restrita (review)',
+    label: 'Restricted permissions (review)',
     ok: true,
     ms: 0,
-    detail: 'sandbox = clone descartável em ~/.revai/repos',
+    detail: 'sandbox = disposable clone in ~/.revai/repos',
   })
 
   const ok = items.every((i) => i.ok)

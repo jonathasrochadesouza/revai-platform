@@ -3,45 +3,45 @@
 
 # revai
 
-**Code review com IA, rodando 100% na sua máquina.**
+**AI code review, running 100% on your machine.**
 
-[![status](https://img.shields.io/badge/status-prot%C3%B3tipo_implementado-facc15?labelColor=18181b)](#-como-rodar) [![node](https://img.shields.io/badge/node-%E2%89%A520.9-334155?labelColor=18181b)](https://nodejs.org) [![privacidade](https://img.shields.io/badge/privacidade-dados_locais-4ade80?labelColor=18181b)](#-dados-e-privacidade)
+[![status](https://img.shields.io/badge/status-prot%C3%B3tipo_implementado-facc15?labelColor=18181b)](#-getting-started) [![node](https://img.shields.io/badge/node-%E2%89%A520.9-334155?labelColor=18181b)](https://nodejs.org) [![privacy](https://img.shields.io/badge/privacidade-dados_locais-4ade80?labelColor=18181b)](#-data--privacy)
 
 </div>
 
 ---
 
-A plataforma é o **host local da skill** [`skill-version/revai`](./skill-version/revai): você aponta um repo remoto (branch, PR, MR, commit) **ou uma pasta local**, e o agente CLI da sua máquina executa a revisão — o mesmo pipeline de 5 passos, Quality Gate e fix loop da skill, agora com orquestração e interface.
+The platform is the **local host for the skill** [`skill-version/revai`](./skill-version/revai): you point it at a remote repo (branch, PR, MR, commit) **or a local folder**, and the CLI agent on your machine runs the review — the same 5-step pipeline, Quality Gate and fix loop from the skill, now with orchestration and a UI.
 
-## ✨ Destaques
+## ✨ Highlights
 
-- 👀 **5 passos ao vivo** — resolve → clone → diff → skill → relatório, com log em streaming (SSE)
-- ✅ **Quality Gate** — espelho fiel de `computeGate()`: fail só com `critical` aberto
-- 🔁 **Fix loop** — aplica a correção, roda os testes e mostra o delta do Gate
-- 🤖 **Harness à sua escolha** — `kiro-cli`, `claude`, `codex`, `opencode` ou `copilot`, configurado no onboarding
-- 💾 **100% local** — sem telemetria; dados em `~/.revai`, commits só com o seu clique
+- 👀 **5 steps live** — resolve → clone → diff → skill → report, with a streaming log (SSE)
+- ✅ **Quality Gate** — faithful mirror of `computeGate()`: fails only with an open `critical`
+- 🔁 **Fix loop** — applies the fix, runs the tests and shows the Gate delta
+- 🤖 **Harness of your choice** — `kiro-cli`, `claude`, `codex`, `opencode` or `copilot`, configured in onboarding
+- 💾 **100% local** — no telemetry; data in `~/.revai`, commits only with your click
 
-## 🧭 Como funciona
+## 🧭 How it works
 
 ```mermaid
 flowchart TD
-    A[URL / pasta local] --> B[resolve + acessibilidade]
-    B --> C[clone em ~/.revai/repos + checkout head]
+    A[URL / local folder] --> B[resolve + accessibility]
+    B --> C[clone into ~/.revai/repos + checkout head]
     C --> D["revai.mjs diff --current → patch"]
-    D --> E["harness local via stdin<br/>→ review.json + meta.json"]
-    E --> F["validação schema V2<br/>→ relatório HTML"]
-    F --> G[fix loop: aplicar → testes → gate delta]
+    D --> E["local harness via stdin<br/>→ review.json + meta.json"]
+    E --> F["schema V2 validation<br/>→ HTML report"]
+    F --> G[fix loop: apply → tests → gate delta]
 ```
 
-O pipeline é o da skill (`revai.mjs` + `generate-review.mjs`); a plataforma orquestra e desenha:
+The pipeline is the skill's own (`revai.mjs` + `generate-review.mjs`); the platform orchestrates and renders it:
 
-1. **Resolver** — `github.com/org/repo/tree/branch`, `pull/482`, `merge-requests/12`, `@sha` ou pasta local.
-2. **Clonar e diff** — clone em `~/.revai/repos/<host>/<org>/<repo>` e `diff --current` contra a base (`origin/HEAD` + `merge-base`).
-3. **Revisar** — o harness recebe via stdin o escopo do patch, as regras do projeto (`.revai/rules.md` > `CODING_STANDARDS.md`/`CONTRIBUTING.md`) e os caminhos da skill; ele só lê código e escreve em `.revai/` do clone.
-4. **Validar** — schema V2 da skill; se falhar, nada é gerado e a UI mostra o erro real.
-5. **Relatar e corrigir** — Gate + findings na UI; no fix loop as edições ficam unstaged até você pedir o push (`revai/fix-<slug>`).
+1. **Resolve** — `github.com/org/repo/tree/branch`, `pull/482`, `merge-requests/12`, `@sha` or a local folder.
+2. **Clone and diff** — clone into `~/.revai/repos/<host>/<org>/<repo>` and `diff --current` against the base (`origin/HEAD` + `merge-base`).
+3. **Review** — the harness receives via stdin the patch scope, the project rules (`.revai/rules.md` > `CODING_STANDARDS.md`/`CONTRIBUTING.md`) and the skill paths; it only reads code and writes into the clone's `.revai/`.
+4. **Validate** — the skill's schema V2; if it fails, nothing is generated and the UI shows the real error.
+5. **Report and fix** — Gate + findings in the UI; in the fix loop the edits stay unstaged until you ask for the push (`revai/fix-<slug>`).
 
-| Harness | Invocação padrão |
+| Harness | Default invocation |
 |---------|------------------|
 | Kiro CLI | `kiro-cli exec` |
 | Claude Code | `claude -p --allowedTools "Write,Read,Glob,Grep" --disallowedTools Bash` |
@@ -49,100 +49,100 @@ O pipeline é o da skill (`revai.mjs` + `generate-review.mjs`); a plataforma orq
 | OpenCode | `opencode run` |
 | Copilot CLI | `copilot -p` (experimental) |
 
-> O prompt vai **sempre via stdin** (evita limite de linha no Windows). Flags próprias: edite `customArgs` em `~/.revai/harnesses.json` (tokens `{exe} {prompt} {model}`).
+> The prompt always goes **via stdin** (avoids the Windows line-length limit). Custom flags: edit `customArgs` in `~/.revai/harnesses.json` (tokens `{exe} {prompt} {model}`).
 
-## 🚀 Como rodar
+## 🚀 Getting started
 
-**Pré-requisitos:** Node ≥ 20.9 (22+ recomendado), Git e pelo menos um harness CLI no PATH.
+**Prerequisites:** Node ≥ 20.9 (22+ recommended), Git and at least one harness CLI on the PATH.
 
 ```bash
 npm install
 
-# desenvolvimento — API :8797 + Vite :5173 (proxy)
+# development — API :8797 + Vite :5173 (proxy)
 npm run dev           # http://localhost:5173
 
-# produção local — API + UI na mesma porta
+# local production — API + UI on the same port
 npm run build
-npm start             # http://127.0.0.1:8797  (--open abre o navegador)
+npm start             # http://127.0.0.1:8797  (--open opens the browser)
 
-# qualidade
-npm run typecheck     # TypeScript sem emitir
+# quality
+npm run typecheck     # TypeScript without emitting
 npm test              # vitest
 ```
 
-> ⚠️ **A UI depende da API.** Se aparecer "Servidor local offline", o `npm start` não está rodando — mantenha o processo vivo.
+> ⚠️ **The UI depends on the API.** If you see "Local server offline", `npm start` is not running — keep the process alive.
 
-Variáveis de ambiente:
+Environment variables:
 
-| Var | Padrão | O que muda |
+| Var | Default | What it changes |
 |-----|--------|------------|
-| `REVAI_PORT` | `8797` | Porta da API/UI |
-| `REVAI_HOME` | `~/.revai` | Diretório de dados (repos, reviews, settings) |
-| `REVAI_SKILL_DIR` | `./skill-version/revai/skills/revai` | Onde estão os scripts da skill |
+| `REVAI_PORT` | `8797` | Port for the API/UI |
+| `REVAI_HOME` | `~/.revai` | Data directory (repos, reviews, settings) |
+| `REVAI_SKILL_DIR` | `./skill-version/revai/skills/revai` | Where the skill scripts live |
 
-## 🖥️ Telas
+## 🖥️ Screens
 
-| # | Tela | Rota |
+| # | Screen | Route |
 |---|------|------|
-| 01 | Onboarding — detecta CLIs e define o runner padrão | `/onboarding` |
-| 02 | Nova review — URL ou pasta local, "continuar de onde parou" | `/new` |
-| 03 | Configure — escopo, base, regras, harness e estimativa | `/configure` |
-| 04 | Running — stepper dos 5 passos com log bruto | `/running` |
-| 05 | Relatório — Gate + findings, filtros e Pular/Restaurar | `/report/:id` |
-| 06 | Fix loop — fila de correções com teste e delta do Gate | `/fix/:id` |
-| 07 | History — todas as reviews com resultado do Gate | `/` |
-| 09 | Settings — tema, regras globais, cache e acesso git | `/settings` |
-| 10 | States — catálogo dos estados desenhados | `/states` |
+| 01 | Onboarding — detects CLIs and sets the default runner | `/onboarding` |
+| 02 | New review — URL or local folder, "resume where you left off" | `/new` |
+| 03 | Configure — scope, base, rules, harness and estimate | `/configure` |
+| 04 | Running — stepper of the 5 steps with the raw log | `/running` |
+| 05 | Report — Gate + findings, filters and Skip/Restore | `/report/:id` |
+| 06 | Fix loop — fix queue with tests and the Gate delta | `/fix/:id` |
+| 07 | History — all reviews with the Gate result | `/` |
+| 09 | Settings — theme, global rules, cache and git access | `/settings` |
+| 10 | States — catalog of the designed states | `/states` |
 
-> A 08 (`/harnesses`) não existe na v1: o runner é definido no onboarding e aparece nas telas 02/03 só como status.
+> Screen 08 (`/harnesses`) does not exist in v1: the runner is set during onboarding and appears in screens 02/03 only as status.
 
-## ⌨️ Atalhos
+## ⌨️ Shortcuts
 
-| Tecla | Onde | Ação |
+| Key | Where | Action |
 |-------|------|------|
-| `Ctrl K` / `⌘K` | global | Command palette (ações, reviews recentes, colar URL) |
-| `N` · `T` · `Esc` | global | Nova review · alternar tema · fechar palette |
-| `Ctrl ↵` | 03 | Iniciar review |
-| `J` / `K` | 05 | Finding próximo / anterior |
-| `S` / `C` | 05 | Pular/restaurar · copiar prompt |
-| `F` | 05 | Mandar o finding para o fix loop |
+| `Ctrl K` / `⌘K` | global | Command palette (actions, recent reviews, paste URL) |
+| `N` · `T` · `Esc` | global | New review · toggle theme · close palette |
+| `Ctrl ↵` | 03 | Start review |
+| `J` / `K` | 05 | Next / previous finding |
+| `S` / `C` | 05 | Skip/restore · copy prompt |
+| `F` | 05 | Send the finding to the fix loop |
 
-## 📦 Dados e privacidade
+## 📦 Data & privacy
 
 ```
 ~/.revai/
 ├─ settings.json · harnesses.json
-├─ repos/<host>/<org>/<repo>          # clones em cache — limpe em Settings
+├─ repos/<host>/<org>/<repo>          # cached clones — clean them up in Settings
 └─ reviews/<id>/                       # record.json · review.json · meta.json · review.patch · review.html
 ```
 
-- Nada sai da sua máquina: o diff e as regras circulam só entre o clone sandbox, a skill e o seu harness.
-- Nada é escrito até o schema V2 validar — herança direta do `generate-review.mjs`.
-- Commits só com o seu clique: fixes ficam unstaged; "criar branch e push" é uma ação explícita.
+- Nothing leaves your machine: the diff and the rules circulate only between the sandbox clone, the skill and your harness.
+- Nothing is written until schema V2 validates — direct inheritance from `generate-review.mjs`.
+- Commits only with your click: fixes stay unstaged; "create branch and push" is an explicit action.
 
-## 🗂️ Estrutura
+## 🗂️ Structure
 
 ```
 src/
-├─ shared/            contrato: types.ts · gate.ts (computeGate) · urls.ts (parser de origem)
+├─ shared/            contract: types.ts · gate.ts (computeGate) · urls.ts (source parser)
 ├─ server/            hono + @hono/node-server
-│  ├─ pipeline.ts     orquestração do review (SSE)
-│  ├─ fixloop.ts      fila de fixes (apply → testes → gate delta)
+│  ├─ pipeline.ts     review orchestration (SSE)
+│  ├─ fixloop.ts      fix queue (apply → tests → gate delta)
 │  ├─ git.ts          plumbing: clone, checkout, numstat, push, reset
-│  └─ harnesses.ts    descoberta, validação e templates de invocação
-└─ app/               react 19 + vite (styles.css = porta do prototype)
+│  └─ harnesses.ts    discovery, validation and invocation templates
+└─ app/               react 19 + vite (styles.css = port of the prototype)
    ├─ screens/        Onboarding · NewReview · Configure · Running · Report · Fix · History · Settings · States
    └─ ui.tsx          badges, stepper, terminal, code-diff, toasts, gate panel
 ```
 
 ## 🛣️ Roadmap
 
-- [ ] Handshake ACP completo (checklist por item, sessão read-only)
-- [ ] Redação de segredos antes do patch sair do clone
-- [ ] Edição de templates de harness pela UI (telas 08)
-- [ ] Comparação de reviews e multi-reviews agendadas
-- [ ] Insights agregados entre repos
+- [ ] Full ACP handshake (per-item checklist, read-only session)
+- [ ] Secret redaction before the patch leaves the clone
+- [ ] Edit harness templates from the UI (screen 08)
+- [ ] Review comparison and scheduled multi-reviews
+- [ ] Aggregated insights across repos
 
 ---
 
-Feito sobre a skill [`skill-version/revai`](./skill-version/revai) e a narrativa do [`prototype/index.html`](./prototype/index.html). Design **"Hard Hat"**: zinc + amarelo `#facc15`, reservado à ação primária, ao foco e à marca.
+Built on top of the [`skill-version/revai`](./skill-version/revai) skill and the [`prototype/index.html`](./prototype/index.html) narrative. Design **"Hard Hat"**: zinc + yellow `#facc15`, reserved for the primary action, focus and the brand.

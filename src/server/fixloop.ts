@@ -1,4 +1,4 @@
-// Fix loop — fila de correções: aplicar (harness) → rodar testes → finding resolved → gate delta.
+// Fix loop — fix queue: apply (harness) → run tests → finding resolved → gate delta.
 import fs from 'node:fs'
 import path from 'node:path'
 import { exec, stream, type RunHandle } from './proc'
@@ -74,7 +74,7 @@ export async function runFix(
   const before = record.gate
   let cancelled = false
   let current: RunHandle | null = null
-  // cancelamento registrado desde o início — vale entre itens também (mata o spawn atual quando houver)
+  // cancellation registered from the start — holds between items too (kills the current spawn when there is one)
   jobs.set(jobId, async () => {
     cancelled = true
     await current?.kill()
@@ -82,7 +82,7 @@ export async function runFix(
 
   try {
     if (!record.repo.dir || !fs.existsSync(record.repo.dir)) {
-      throw new AppError('repo/inaccessible', 'O clone deste review não está mais em ~/.revai/repos')
+      throw new AppError('repo/inaccessible', 'The clone for this review is no longer in ~/.revai/repos')
     }
     await send({ t: 'job', id: jobId })
     await send({
@@ -98,7 +98,7 @@ export async function runFix(
       const f = record.findings.find((x) => x.id === id)
       if (!f) continue
 
-      // ── Aplicar correção
+      // ── Apply fix
       await send({ t: 'item', id, step: 'apply', status: 'running' })
       const prompt = buildFixPrompt(record, f)
       const inv = h.invoke(record.harnessId, 'fix', null, record.model)
@@ -120,20 +120,20 @@ export async function runFix(
       const wt = await g.worktreeNumstat(record.repo.dir)
       if (cancelled) break
       if (wt.files.length === 0) {
-        await send({ t: 'item', id, step: 'apply', status: 'failed', detail: 'o agente não alterou nenhum arquivo' })
-        await send({ t: 'item', id, step: 'failed', status: 'failed', detail: 'o agente não alterou nenhum arquivo' })
+        await send({ t: 'item', id, step: 'apply', status: 'failed', detail: 'The agent made no file changes' })
+        await send({ t: 'item', id, step: 'failed', status: 'failed', detail: 'The agent made no file changes' })
         failed.push(id)
         continue
       }
       await send({ t: 'item', id, step: 'apply', status: 'ok' })
 
-      // ── Rodar testes
+      // ── Run tests
       if (wantTests) {
         await send({ t: 'item', id, step: 'test', status: 'running' })
         if (cancelled) break
         const tc = detectTestCommand(record.repo.dir)
         if (!tc) {
-          await send({ t: 'item', id, step: 'test', status: 'ok', detail: 'sem comando de teste detectado' })
+          await send({ t: 'item', id, step: 'test', status: 'ok', detail: 'No test command detected' })
         } else {
           const tr = await stream(tc.argv, {
             cwd: record.repo.dir,
@@ -142,8 +142,8 @@ export async function runFix(
           })
           if (cancelled) break
           if (tr.code !== 0 || tr.timedOut) {
-            await send({ t: 'item', id, step: 'test', status: 'failed', detail: tr.timedOut ? 'timeout' : 'testes falharam — alteração mantida para inspeção' })
-            await send({ t: 'item', id, step: 'failed', status: 'failed', detail: 'testes falharam' })
+            await send({ t: 'item', id, step: 'test', status: 'failed', detail: tr.timedOut ? 'timeout' : 'Tests failed — change kept for inspection' })
+            await send({ t: 'item', id, step: 'failed', status: 'failed', detail: 'Tests failed' })
             failed.push(id)
             continue
           }
@@ -155,14 +155,14 @@ export async function runFix(
       await send({ t: 'item', id, step: 'done', status: 'ok' })
     }
 
-    // ── Cancelado: NÃO consolida nada (status/gate como estavam) e avisa o cliente
+    // ── Cancelled: does NOT consolidate anything (status/gate stay as they were) and notifies the client
     if (cancelled) {
       saveRecord(record)
-      await send({ t: 'cancelled', note: 'execução interrompida — alterações parciais permanecem no clone até o descarte' })
+      await send({ t: 'cancelled', note: 'Execution interrupted — partial changes remain in the clone until it is discarded' })
       return
     }
 
-    // ── Consolida: status resolved, gate delta, HTML da skill e patch de fix
+    // ── Consolidate: resolved status, gate delta, skill HTML and fix patch
     if (applied.length) {
       for (const id of applied) {
         const f = record.findings.find((x) => x.id === id)
@@ -182,14 +182,14 @@ export async function runFix(
             record.artifacts.html = record.artifacts.html ?? 'review.html'
           }
         }
-      } catch { /* sem sync — a UI da plataforma é a fonte primária */ }
+      } catch { /* no sync — the platform UI is the primary source */ }
       try {
         const r = await exec(['git', 'diff', '--no-color', '--no-ext-diff'], { cwd: record.repo.dir! })
         if (r.code === 0 && r.stdout.trim()) {
           fs.writeFileSync(path.join(recordDir(record.id), 'fix.patch'), r.stdout, 'utf8')
           record.artifacts.fixPatch = 'fix.patch'
         }
-      } catch { /* sem patch */ }
+      } catch { /* no patch */ }
       saveRecord(record)
       await send({ t: 'gate', before, after, applied, failed })
       await send({ t: 'done', reviewId: record.id, patchName: record.artifacts.fixPatch })
@@ -202,7 +202,7 @@ export async function runFix(
   } catch (e) {
     if (cancelled || (e as any)?.code === 'job/cancelled') {
       saveRecord(record)
-      await send({ t: 'cancelled', note: 'alterações ficam no clone — use Descartar para reverter' })
+      await send({ t: 'cancelled', note: 'Changes remain in the clone — use Discard to revert' })
       return
     }
     const err = AppError.from(e)

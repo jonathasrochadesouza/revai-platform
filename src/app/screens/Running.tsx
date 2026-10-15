@@ -1,4 +1,4 @@
-// 04-running — stepper 5 passos + log ao vivo via SSE (+ cancelar)
+// 04-running — 5-step stepper + live log via SSE (+ cancel)
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Icon, Terminal, Stepper, GatePanel, type Step, type LogLine, fmtDur } from '../ui'
@@ -8,12 +8,12 @@ import type { RunConfig } from '../flow'
 import { loadRun } from '../flow'
 
 const INITIAL: Step[] = [
-  { id: 'clone', label: 'Preparar clone', status: 'idle' },
-  { id: 'patch', label: 'Gerar patch', status: 'idle' },
-  { id: 'analyze', label: 'Analisar mudanças', status: 'idle' },
-  { id: 'capture', label: 'Registrar findings', status: 'idle' },
-  { id: 'validate', label: 'Validar schema', status: 'idle' },
-  { id: 'assemble', label: 'Montar relatório', status: 'idle' },
+  { id: 'clone', label: 'Prepare clone', status: 'idle' },
+  { id: 'patch', label: 'Generate patch', status: 'idle' },
+  { id: 'analyze', label: 'Analyze changes', status: 'idle' },
+  { id: 'capture', label: 'Record findings', status: 'idle' },
+  { id: 'validate', label: 'Validate schema', status: 'idle' },
+  { id: 'assemble', label: 'Assemble report', status: 'idle' },
 ]
 
 export default function Running() {
@@ -97,10 +97,10 @@ export default function Running() {
   if (!cfg) {
     return (
       <div className="page narrow">
-        <h1>Acompanhar</h1>
+        <h1>Track</h1>
         <div className="empty">
-          <div className="big">Nenhuma review em andamento</div>
-          Inicie em <Link to="/new">Nova review</Link>.
+          <div className="big">No review in progress</div>
+          Start from <Link to="/new">New review</Link>.
         </div>
       </div>
     )
@@ -114,11 +114,11 @@ export default function Running() {
   return (
     <div className="page narrow">
       <div className="row" style={{ marginBottom: 8 }}>
-        <h1 style={{ flex: 1 }}>Acompanhando</h1>
+        <h1 style={{ flex: 1 }}>Tracking</h1>
         <span className="badge num">{fmtDur(elapsed)}</span>
         {status === 'running' && (
           <button className="btn sm danger" onClick={() => void cancel()}>
-            <Icon name="stop" /> Cancelar
+            <Icon name="stop" /> Cancel
           </button>
         )}
       </div>
@@ -128,7 +128,7 @@ export default function Running() {
 
       {stats && (
         <div className="row small muted num" style={{ marginBottom: 18 }}>
-          <span>{stats.files} arquivo(s)</span><span>·</span><span>+{stats.add}</span><span>−{stats.del}</span>
+          <span>{stats.files} file(s)</span><span>·</span><span>+{stats.add}</span><span>−{stats.del}</span>
           <span>·</span><span>harness: {cfg.harnessId}{cfg.model && cfg.model !== 'auto' ? ` · ${cfg.model}` : ''}</span>
         </div>
       )}
@@ -150,7 +150,7 @@ export default function Running() {
         <div className="callout warn" style={{ marginTop: 20 }}>
           <Icon name="alert" />
           <span className="col" style={{ gap: 4 }}>
-            <b>Review cancelado</b>
+            <b>Review cancelled</b>
             {cancelNote && <span className="small">{cancelNote}</span>}
           </span>
         </div>
@@ -160,15 +160,15 @@ export default function Running() {
         <div style={{ marginTop: 20 }}>
           {gate && <GatePanel gate={gate} />}
           <div className="row" style={{ marginTop: 12 }}>
-            <span className="small muted">{openOnFinish ? 'Relatório pronto — abrindo…' : 'Relatório pronto.'}</span>
-            {reviewId && <Link className="btn sm" to={`/report/${reviewId}`}>Abrir relatório</Link>}
+            <span className="small muted">{openOnFinish ? 'Report ready — opening…' : 'Report ready.'}</span>
+            {reviewId && <Link className="btn sm" to={`/report/${reviewId}`}>Open report</Link>}
           </div>
         </div>
       )}
 
       <div style={{ marginTop: 22 }}>
         <div className="row" style={{ marginBottom: 8 }}>
-          <span className="small faint">log bruto (Resumo no relatório)</span>
+          <span className="small faint">raw log (summary in the report)</span>
         </div>
         <Terminal lines={logs} />
       </div>

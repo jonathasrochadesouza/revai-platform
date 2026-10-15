@@ -1,5 +1,5 @@
-// Pipeline de review — os mesmos 5 passos da skill, com eventos SSE:
-//   1 Preparar clone → 2 Gerar patch → 3 Analisar mudanças (harness) → 4 Registrar findings → 5 Validar schema → 6 Montar relatório
+// Review pipeline — the same 5 steps as the skill, with SSE events:
+//   1 Prepare clone → 2 Generate patch → 3 Analyze changes (harness) → 4 Capture findings → 5 Validate schema → 6 Assemble report
 import fs from 'node:fs'
 import path from 'node:path'
 import { parseSource } from '../shared/urls'
@@ -19,15 +19,15 @@ export type JobRegistry = Map<string, () => Promise<void>>
 const REVIEW_TIMEOUT_MS = 25 * 60 * 1000
 
 const STEP_LABELS: Record<StepId, string> = {
-  clone: 'Preparar clone',
-  patch: 'Gerar patch',
-  analyze: 'Analisar mudanças',
-  capture: 'Registrar findings',
-  validate: 'Validar schema',
-  assemble: 'Montar relatório',
+  clone: 'Prepare clone',
+  patch: 'Generate patch',
+  analyze: 'Analyze changes',
+  capture: 'Capture findings',
+  validate: 'Validate schema',
+  assemble: 'Assemble report',
 }
 
-/** prompt enviado ao harness pela stdin (curto, por path — igual copiar prompt da skill) */
+/** prompt sent to the harness via stdin (short, by path — same as copying the prompt from the skill) */
 export function buildReviewPrompt(o: {
   repoDir: string
   slug: string
@@ -77,24 +77,24 @@ export async function runReview(send: Send, cfg: RunReviewBody, jobId: string, j
     send({ t: 'step', id: currentStep, label: STEP_LABELS[currentStep], status, detail })
 
   try {
-    // 1. Preparar clone
+    // 1. Prepare clone
     await step('running')
     const parsed = parseSource(cfg.source)
     const prepared = await proj.prepare(parsed, (l) => send({ t: 'log', stream: 'git', line: l }))
     await step('done', prepared.repoDir)
 
-    // 2. Gerar patch
+    // 2. Generate patch
     currentStep = 'patch'
     await step('running')
     await send({ t: 'log', stream: 'script', line: '$ node revai.mjs diff --current' })
     const diff = await skill.runDiff(prepared.repoDir)
-    void send({ t: 'log', stream: 'script', line: `${diff.slug} · ${diff.filesChanged} arquivos · +${diff.additions} −${diff.deletions}` })
+    void send({ t: 'log', stream: 'script', line: `${diff.slug} · ${diff.filesChanged} files · +${diff.additions} −${diff.deletions}` })
     await send({ t: 'stats', filesChanged: diff.filesChanged, additions: diff.additions, deletions: diff.deletions, slug: diff.slug, patchPath: diff.patchPath })
     await step('done')
 
-    if (diff.filesChanged === 0) throw guard('repo/empty-diff', 'Nenhuma mudança entre base e head.')
+    if (diff.filesChanged === 0) throw guard('repo/empty-diff', 'No changes between base and head')
 
-    // 3. Analisar mudanças (harness)
+    // 3. Analyze changes (harness)
     currentStep = 'analyze'
     await step('running')
     const inv = h.invoke(cfg.harnessId, 'review', null, cfg.model)
@@ -127,32 +127,32 @@ export async function runReview(send: Send, cfg: RunReviewBody, jobId: string, j
       if (authFail) {
         throw guard(
           'harness/login-needed',
-          `O runner ${cfg.harnessId} não está autenticado — rode o login do CLI e valide de novo.`,
+          `The ${cfg.harnessId} runner is not authenticated — run the CLI login and validate again`,
           run.stderr.trim().split('\n').slice(-2).join('\n') || undefined,
           401,
         )
       }
       const tail = (run.timedOut ? 'timeout' : run.stderr.trim().split('\n').filter(Boolean).slice(-3).join('\n')) || `exit ${run.code}`
-      throw guard(run.timedOut ? 'agent/timeout' : 'agent/failed', `harness ${cfg.harnessId} terminou com erro`, tail, 500)
+      throw guard(run.timedOut ? 'agent/timeout' : 'agent/failed', `harness ${cfg.harnessId} finished with an error`, tail, 500)
     }
     await step('done')
 
-    // 4. Registrar findings
+    // 4. Capture findings
     currentStep = 'capture'
     await step('running')
     const reviewJsonPath = path.join(prepared.repoDir, '.revai', 'data', `${diff.slug}-review.json`)
     const metaJsonPath = path.join(prepared.repoDir, '.revai', 'data', `${diff.slug}-meta.json`)
     for (const p of [reviewJsonPath, metaJsonPath]) {
-      if (!fs.existsSync(p)) throw guard('agent/failed', `arquivo esperado não foi escrito: ${path.basename(p)}`, p, 500)
+      if (!fs.existsSync(p)) throw guard('agent/failed', `Expected file was not written: ${path.basename(p)}`, p, 500)
     }
     let findings: Finding[]
     let meta: ReviewMeta
     try {
       findings = JSON.parse(fs.readFileSync(reviewJsonPath, 'utf8'))
-      if (!Array.isArray(findings)) throw new Error('review.json deve ser um array')
+      if (!Array.isArray(findings)) throw new Error('review.json must be an array')
       meta = JSON.parse(fs.readFileSync(metaJsonPath, 'utf8'))
     } catch (e) {
-      throw guard('agent/failed', 'JSON inválido escrito pelo agente', String(e), 500)
+      throw guard('agent/failed', 'Invalid JSON written by the agent', String(e), 500)
     }
     findings = findings.map((f, i) => {
       const ff = { ...f } as Finding
@@ -162,13 +162,13 @@ export async function runReview(send: Send, cfg: RunReviewBody, jobId: string, j
     })
     await step('done', `${findings.length} findings`)
 
-    // 5. Validar schema (script da skill — nada é gerado até passar)
+    // 5. Validate schema (skill script — nothing is generated until it passes)
     currentStep = 'validate'
     await step('running')
     const gen = await skill.generateReview(prepared.repoDir, diff.slug)
-    await step('done', 'report gerado pela skill')
+    await step('done', 'Report generated by the skill')
 
-    // 6. Montar relatório
+    // 6. Assemble report
     currentStep = 'assemble'
     await step('running')
     const gate = computeGate(findings, [])
@@ -211,13 +211,13 @@ export async function runReview(send: Send, cfg: RunReviewBody, jobId: string, j
     }
     saveRecord(record)
     await send({ t: 'gate', gate })
-    await step('done', `${record.stats.filesChanged} arquivos · ${record.stats.durationMs / 1000}s`)
+    await step('done', `${record.stats.filesChanged} files · ${record.stats.durationMs / 1000}s`)
     await send({ t: 'done', reviewId: id })
   } catch (e) {
     const isCancel = (e as any)?.code === 'job/cancelled'
     if (isCancel) {
       await step('failed')
-      await send({ t: 'cancelled', note: 'artefatos parciais ficam em .revai/data no clone' })
+      await send({ t: 'cancelled', note: 'Partial artifacts remain in .revai/data in the clone' })
       return
     }
     const err = e instanceof AppError ? e : AppError.from(e)
@@ -232,22 +232,22 @@ export async function patchFindingStatus(
   action: 'open' | 'resolved' | 'skipped',
 ): Promise<ReviewRecord> {
   const f = record.findings.find((x) => x.id === fid)
-  if (!f) throw new AppError('findings/not-found', `finding ${fid} inexistente`, undefined, 404)
+  if (!f) throw new AppError('findings/not-found', `Finding ${fid} not found`, undefined, 404)
   if (action === 'open') {
-    // restaurar = desfazer o PULAR apenas — não reabre um finding resolvido
+    // restore undoes the SKIP only — it does not reopen a resolved finding
     record.skipped = record.skipped.filter((s) => s !== fid)
   } else if (action === 'resolved') {
     f.status = 'resolved'
     record.skipped = record.skipped.filter((s) => s !== fid)
   } else {
     if (f.status === 'resolved') {
-      throw new AppError('findings/already-resolved', 'Finding resolvido não pode ser pulado', undefined, 409)
+      throw new AppError('findings/already-resolved', 'A resolved finding cannot be skipped', undefined, 409)
     }
     if (!record.skipped.includes(fid)) record.skipped.push(fid)
   }
   record.gate = computeGate(record.findings, record.skipped)
   saveRecord(record)
-  // mantém o HTML da skill em sinc (best-effort — requer clone ativo)
+  // keeps the skill HTML in sync (best-effort — requires an active clone)
   try {
     if (record.repo.dir && fs.existsSync(record.repo.dir)) {
       const reviewJsonPath = path.join(record.repo.dir, '.revai', 'data', `${record.slug}-review.json`)
@@ -259,6 +259,6 @@ export async function patchFindingStatus(
         saveRecord(record)
       }
     }
-  } catch { /* sem sync — UI continua única fonte */ }
+  } catch { /* no sync — the UI remains the single source */ }
   return record
 }

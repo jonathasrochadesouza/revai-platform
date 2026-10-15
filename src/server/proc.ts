@@ -1,5 +1,5 @@
-// Processos: exec com coleta + stream com kill de árvore + timeout.
-// Nunca usa shell:true com conteúdo do usuário — argv sempre em array; prompt grande vai via stdin.
+// Processes: exec with output collection + stream with tree kill + timeout.
+// Never uses shell:true with user-controlled content — argv is always an array; the large prompt goes via stdin.
 import { spawn, type ChildProcess } from 'node:child_process'
 
 const isWin = process.platform === 'win32'
@@ -11,14 +11,14 @@ export interface ExecResult {
   timedOut?: boolean
 }
 
-const CAP = 2 * 1024 * 1024 // 2 MB por stream coletado
+const CAP = 2 * 1024 * 1024 // 2 MB per collected stream
 
 function spawnOpts() {
   const stdio: Array<'pipe'> = ['pipe', 'pipe', 'pipe']
   return {
     env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GIT_PAGER: 'cat' },
     windowsHide: true,
-    // no unix, detached permite matar o grupo inteiro (-pid)
+    // on unix, detached lets you kill the whole process group (-pid)
     detached: !isWin,
     stdio,
   }
@@ -74,7 +74,7 @@ export function stream(argv: string[], opts: StreamOptions): Promise<ExecResult>
     }
 
     const cap = (acc: string, chunk: string) => (acc.length < CAP ? acc + chunk : acc)
-    // logs de saída: sem ANSI (␛[0m…) e quebrando também em \r (progress bars do git)
+    // output logs: no ANSI (␛[0m…) and also breaking on \r (git progress bars)
     const ANSI_RE = /\x1B\[[0-?]*[ -/]*[@-~]|\x1B\][^\x07]*(?:\x07|\x1B\\)?|\x1B[@-Z\\-_]/g
     const feed = (buf: Buffer, which: 'out' | 'err') => {
       const text = buf.toString()
@@ -87,7 +87,7 @@ export function stream(argv: string[], opts: StreamOptions): Promise<ExecResult>
     child.stderr?.on('data', (d) => feed(d, 'err'))
 
     if (opts.stdin) {
-      try { child.stdin?.write(opts.stdin) } catch { /* cliente fechou stdin */ }
+      try { child.stdin?.write(opts.stdin) } catch { /* client closed stdin */ }
     }
     child.stdin?.end()
 
@@ -117,8 +117,8 @@ interface Wrapped {
   verbatim?: boolean
 }
 
-/** .cmd/.bat no Windows exigem cmd.exe /c — com windowsVerbatimArguments o cmd recebe
- *  a linha crua (aspas individuais por arg), sem o escape \" que ele não interpreta. */
+/** .cmd/.bat on Windows require cmd.exe /c — with windowsVerbatimArguments cmd receives
+ *  the raw command line (individual quotes per arg), without the \" escape it cannot interpret. */
 function wrap(argv: string[]): Wrapped {
   let a0 = argv[0] ?? ''
   if (isWin && !/\./.test(a0) && /^(npm|npx|pnpm|yarn)$/.test(a0)) a0 += '.cmd'

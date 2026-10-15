@@ -1,5 +1,5 @@
-// Catálogo de erros — mesma filosofia do legacy: {error_key, params} contratuais.
-// A tela 10-states do protótipo demonstra cada um deles.
+// Error catalog — same philosophy as the legacy: contractual {error_key, params}.
+// The prototype's 10-states screen demonstrates each one.
 export class AppError extends Error {
   constructor(
     public code: string,
@@ -23,79 +23,79 @@ export interface ErrorCatalogEntry {
 
 export const ERRORS: Record<string, ErrorCatalogEntry> = {
   'source/unrecognized': {
-    title: 'Origem não reconhecida',
-    message: 'Cole uma URL de repo (github.com/org/repo, gitlab, git@), org/repo, ou o caminho de uma pasta local.',
+    title: 'Source not recognized',
+    message: 'Paste a repo URL (github.com/org/repo, gitlab, git@), org/repo, or a local folder path',
   },
   'repo/inaccessible': {
-    title: 'Repositório inacessível',
-    message: 'Não foi possível ler o repositório.',
-    hint: 'Confira a URL — e se for privado, se as credenciais do sistema (credential helper do git) estão válidas.',
+    title: 'Repository inaccessible',
+    message: 'Could not read the repository',
+    hint: 'Check the URL — and, if the repo is private, whether the system credentials (git credential helper) are valid',
   },
   'repo/not-git': {
-    title: 'A pasta não é um repositório git',
-    message: 'O caminho informado não contém um repositório git.',
+    title: 'The folder is not a git repository',
+    message: 'The given path does not contain a git repository',
   },
   'repo/empty-diff': {
-    title: 'Diff vazio',
-    message: 'Não há mudanças entre a base e a head selecionadas.',
-    hint: 'Escolha outra base ou outra branch/PR.',
+    title: 'Empty diff',
+    message: 'There are no changes between the selected base and head',
+    hint: 'Choose another base or another branch/PR',
   },
   'repo/head-not-found': {
-    title: 'Branch/PR não encontrado',
-    message: 'A branch, PR ou commit informado não existe no repositório.',
+    title: 'Branch/PR not found',
+    message: 'The branch, PR or commit given does not exist in the repository',
   },
   'harness/not-found': {
-    title: 'Harness não encontrado',
-    message: 'O CLI do harness não foi localizado no PATH.',
-    hint: 'Instale o caminho manualmente em Harnesses.',
+    title: 'Harness not found',
+    message: 'The harness CLI was not found on the PATH',
+    hint: 'Set the path manually in the Harnesses screen',
   },
   'harness/login-needed': {
-    title: 'Login do harness necessário',
-    message: 'O harness não está autenticado.',
-    hint: 'Rode o login do CLI (ex.: codex login, claude login) e valide de novo.',
+    title: 'Harness login required',
+    message: 'The harness is not authenticated',
+    hint: 'Run the CLI login (e.g. codex login, claude login) and validate again',
   },
   'harness/not-validated': {
-    title: 'Harness não validado',
-    message: 'Valide o harness em Harnesses antes de iniciar um review.',
+    title: 'Harness not validated',
+    message: 'Validate the harness in the Harnesses screen before starting a review',
   },
   'agent/failed': {
-    title: 'O agente falhou',
-    message: 'A execução do harness terminou com erro.',
+    title: 'The agent failed',
+    message: 'The harness run finished with an error',
   },
   'agent/timeout': {
-    title: 'Tempo esgotado',
-    message: 'A execução excedeu o limite de tempo configurado.',
+    title: 'Timed out',
+    message: 'The run exceeded the configured time limit',
   },
   'schema/validation': {
-    title: 'Validação do schema falhou',
-    message: 'Os dados do review estão fora do contrato V2 — nada é gerado até passar.',
+    title: 'Schema validation failed',
+    message: 'The review data is out of the V2 contract — nothing is generated until it passes',
   },
   'skill/not-found': {
-    title: 'Skill revai não encontrada',
-    message: 'Não foi possível localizar os scripts da skill revai.',
-    hint: 'Defina REVAI_SKILL_DIR ou mantenha skill-version/ na raiz do projeto.',
+    title: 'revai skill not found',
+    message: 'Could not find the revai skill scripts',
+    hint: 'Set REVAI_SKILL_DIR or keep skill-version/ at the project root',
   },
   'job/cancelled': {
-    title: 'Review cancelado',
-    message: 'A execução foi cancelada no meio do caminho.',
+    title: 'Review cancelled',
+    message: 'The run was cancelled midway',
   },
   'fix/no-changes': {
-    title: 'Nenhuma mudança aplicada',
-    message: 'O agente não alterou nenhum arquivo para este fix.',
+    title: 'No changes applied',
+    message: 'The agent made no file changes for this fix',
   },
   'test/failed': {
-    title: 'Testes falharam',
-    message: 'Os testes do projeto rodaram com erro.',
+    title: 'Tests failed',
+    message: 'The project tests failed',
   },
   'push/failed': {
-    title: 'Falha no push',
-    message: 'Não foi possível fazer push da branch de fix.',
-    hint: 'Confira as credenciais do sistema e permissões do remoto.',
+    title: 'Push failed',
+    message: 'Could not push the fix branch',
+    hint: 'Check the system credentials and remote permissions',
   },
   'findings/already-resolved': {
-    title: 'Finding já resolvido',
-    message: 'Um finding resolvido não pode ser pulado.',
-    hint: 'Restaurar desfaz um pulo; Corrigir resolve o finding de verdade.',
+    title: 'Finding already resolved',
+    message: 'A resolved finding cannot be skipped',
+    hint: 'Restore undoes a skip; Fix actually resolves the finding.',
   },
 }
 

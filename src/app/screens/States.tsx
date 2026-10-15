@@ -1,4 +1,4 @@
-// 10-states — catálogo dos estados desenhados (QA + demo dos error keys do servidor)
+// 10-states — catalog of the mocked states (QA + demo of the server error keys)
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon, GatePanel, GateBadge, Stepper } from '../ui'
@@ -37,18 +37,18 @@ export default function States() {
 
   return (
     <div className="page narrow">
-      <h1>Estados desenhados</h1>
-      <p className="lede">Catálogo dos 10-states: cada tela da plataforma deve reproduzir um destes — ver notas ao rodar.</p>
+      <h1>Mocked states</h1>
+      <p className="lede">Catalog of the 10-states: every platform screen should reproduce one of these — see the notes when running.</p>
 
       <div className="col" style={{ gap: 18 }}>
         <div className="card pad col">
-          <b className="small">vazio — sem reviews</b>
-          <div className="empty"><div className="big">Nenhum review ainda</div>Comece em <Link to="/new">Nova review</Link>.</div>
+          <b className="small">empty — no reviews</b>
+          <div className="empty"><div className="big">No reviews yet</div>Start from <Link to="/new">New review</Link>.</div>
         </div>
 
         <div className="card pad col">
-          <b className="small">carregando</b>
-          <div className="row"><span className="spinner" /><span className="muted">Carregando relatório…</span></div>
+          <b className="small">loading</b>
+          <div className="row"><span className="spinner" /><span className="muted">Loading report…</span></div>
         </div>
 
         {errs.slice(0, 10).map((e) => (
@@ -59,41 +59,41 @@ export default function States() {
         ))}
 
         <div className="card pad col">
-          <b className="small">validação do schema (mensagem real do generate-review.mjs)</b>
-          <div className="terminal"><div><span className="t-err">CR-04: campo "effort" precisa ser um de quick-win | estimated | significant.</span></div></div>
+          <b className="small">schema validation (real message from generate-review.mjs)</b>
+          <div className="terminal"><div><span className="t-err">CR-04: field "effort" must be one of quick-win | estimated | significant.</span></div></div>
         </div>
 
         <div className="card pad col">
-          <b className="small">cancelada/parcial</b>
-          <div className="callout warn"><Icon name="alert" /><span><b>Review cancelado</b><br /><span className="small">artefatos parciais ficam em .revai/data no clone</span></span></div>
+          <b className="small">cancelled/partial</b>
+          <div className="callout warn"><Icon name="alert" /><span><b>Review cancelled</b><br /><span className="small">partial artifacts stay in .revai/data in the clone</span></span></div>
         </div>
 
         <div className="card pad col">
-          <b className="small">sucesso — Quality Gate passou</b>
+          <b className="small">success — Quality Gate passed</b>
           <GatePanel gate={gatePassed} />
         </div>
 
         <div className="card pad col">
-          <b className="small">falha — Gate Failed (estado do relatório)</b>
+          <b className="small">failure — Gate Failed (report state)</b>
           <GatePanel gate={gateFailed} />
         </div>
 
         <div className="card pad col">
-          <b className="small">stepper completo (04-running)</b>
+          <b className="small">full stepper (04-running)</b>
           <Stepper steps={[
-            { id: 'clone', label: 'Preparar clone', status: 'done' },
-            { id: 'patch', label: 'Gerar patch', status: 'done' },
-            { id: 'analyze', label: 'Analisar mudanças', status: 'running' },
-            { id: 'capture', label: 'Registrar findings', status: 'idle' },
-            { id: 'validate', label: 'Validar schema', status: 'idle' },
-            { id: 'assemble', label: 'Montar relatório', status: 'idle' },
+            { id: 'clone', label: 'Prepare clone', status: 'done' },
+            { id: 'patch', label: 'Generate patch', status: 'done' },
+            { id: 'analyze', label: 'Analyze changes', status: 'running' },
+            { id: 'capture', label: 'Record findings', status: 'idle' },
+            { id: 'validate', label: 'Validate schema', status: 'idle' },
+            { id: 'assemble', label: 'Assemble report', status: 'idle' },
           ]} />
         </div>
 
         <div className="card pad col">
-          <b className="small">botões de erro do fluxo</b>
+          <b className="small">flow error buttons</b>
           <div className="row" style={{ flexWrap: 'wrap' }}>
-            <Link className="btn" to="/new">Nova review</Link>
+            <Link className="btn" to="/new">New review</Link>
             <Link className="btn" to="/">Reviews</Link>
             <GateBadge status="failed" />
             <GateBadge status="passed" />

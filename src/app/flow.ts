@@ -1,4 +1,4 @@
-// estado do fluxo Nova review → Configure → Running (sessionStorage)
+// state of the New review → Configure → Running flow (sessionStorage)
 export interface RunConfig {
   source: string
   head: string

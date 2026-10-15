@@ -1,4 +1,4 @@
-// revai — app shell (sidebar, topbar, ⌘K, atalhos) + rotas
+// revai — app shell (sidebar, topbar, ⌘K, shortcuts) + routes
 import { useCallback, useEffect, useState, useContext } from 'react'
 import { Outlet, createBrowserRouter, useLocation, useNavigate, NavLink, Link } from 'react-router-dom'
 import { Icon, ToastCtx, ToastHost, GateBadge } from './ui'
@@ -14,13 +14,13 @@ import History from './screens/History'
 import Settings from './screens/Settings'
 import States from './screens/States'
 
-// ── tema ─────────────────────────────────────────────────────────────────
+// ── theme ─────────────────────────────────────────────────────────────────
 export function setTheme(mode: 'dark' | 'light') {
   document.documentElement.dataset.theme = mode
   localStorage.setItem('revai-theme', mode)
 }
 
-// ── paleta ⌘K ────────────────────────────────────────────────────────────
+// ── ⌘K palette ────────────────────────────────────────────────────────────
 function Palette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [q, setQ] = useState('')
   const [recents, setRecents] = useState<ReviewRow[]>([])
@@ -34,15 +34,15 @@ function Palette({ open, onClose }: { open: boolean; onClose: () => void }) {
   }, [open])
   if (!open) return null
   const actions = [
-    { icon: 'plus', label: 'Nova review', kbd: 'N', go: () => nav('/new') },
+    { icon: 'plus', label: 'New review', kbd: 'N', go: () => nav('/new') },
     { icon: 'list', label: 'Reviews', kbd: 'G', go: () => nav('/') },
-    { icon: 'gear', label: 'Ajustes', go: () => nav('/settings') },
+    { icon: 'gear', label: 'Settings', go: () => nav('/settings') },
     {
-      icon: 'moon', label: 'Alternar tema', kbd: 'T',
+      icon: 'moon', label: 'Toggle theme', kbd: 'T',
       go: () => {
         const cur = (document.documentElement.dataset.theme as 'dark' | 'light') ?? 'dark'
         setTheme(cur === 'dark' ? 'light' : 'dark')
-        toast('Tema alternado', 'ok')
+        toast('Theme toggled', 'ok')
       },
     },
   ].filter((a) => a.label.toLowerCase().includes(q.toLowerCase()))
@@ -52,11 +52,11 @@ function Palette({ open, onClose }: { open: boolean; onClose: () => void }) {
       <div className="palette">
         <div className="p-input">
           <Icon name="search" />
-          <input autoFocus placeholder="Cole uma URL de repo, busque reviews ou rode um comando…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Comando" />
+          <input autoFocus placeholder="Paste a repo URL, search reviews, or run a command…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Command" />
           <kbd>esc</kbd>
         </div>
         <div className="p-group">
-          <div>Ações</div>
+          <div>Actions</div>
           {actions.map((a) => (
             <a key={a.label} onClick={(e) => { e.preventDefault(); a.go(); onClose() }} href="#">
               <Icon name={a.icon} /> {a.label} {a.kbd && <kbd>{a.kbd}</kbd>}
@@ -64,8 +64,8 @@ function Palette({ open, onClose }: { open: boolean; onClose: () => void }) {
           ))}
         </div>
         <div className="p-group">
-          <div>Recentes</div>
-          {rec.length === 0 && <div className="small faint" style={{ padding: '6px 10px' }}>nenhum review ainda</div>}
+          <div>Recent</div>
+          {rec.length === 0 && <div className="small faint" style={{ padding: '6px 10px' }}>no reviews yet</div>}
           {rec.map((r) => (
             <Link key={r.id} to={`/report/${r.id}`} onClick={onClose}>
               <Icon name="git" /> {r.repoLabel} · {r.head}
@@ -78,7 +78,7 @@ function Palette({ open, onClose }: { open: boolean; onClose: () => void }) {
   )
 }
 
-// ── banner quando a API local não responde ────────────────────────────────
+// ── banner when the local API doesn't respond ────────────────────────────────
 function ServerBanner() {
   const [offline, setOffline] = useState(false)
   useEffect(() => {
@@ -97,20 +97,20 @@ function ServerBanner() {
     <div className="callout err" style={{ margin: 0, borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0 }}>
       <Icon name="alert" />
       <span className="small">
-        <b>Servidor local offline</b> — rode <code>npm start</code> na raiz do projeto (porta 8797) e recarregue esta página.
+        <b>Local server offline</b> — run <code>npm start</code> in the project root (port 8797) and reload this page.
       </span>
     </div>
   )
 }
 
-// ── crumbs por rota ──────────────────────────────────────────────────────
+// ── crumbs per route ──────────────────────────────────────────────────────
 function crumbsFor(pathname: string): { label: string; to?: string }[] {
-  if (pathname.startsWith('/new')) return [{ label: 'Reviews', to: '/' }, { label: 'Nova review' }]
-  if (pathname.startsWith('/configure')) return [{ label: 'Reviews', to: '/' }, { label: 'Nova review', to: '/new' }, { label: 'Branch + harness' }]
-  if (pathname.startsWith('/running')) return [{ label: 'Reviews', to: '/' }, { label: 'Nova review', to: '/new' }, { label: 'Acompanhar' }]
-  if (pathname.startsWith('/report')) return [{ label: 'Reviews', to: '/' }, { label: 'Relatório' }]
+  if (pathname.startsWith('/new')) return [{ label: 'Reviews', to: '/' }, { label: 'New review' }]
+  if (pathname.startsWith('/configure')) return [{ label: 'Reviews', to: '/' }, { label: 'New review', to: '/new' }, { label: 'Branch + harness' }]
+  if (pathname.startsWith('/running')) return [{ label: 'Reviews', to: '/' }, { label: 'New review', to: '/new' }, { label: 'Track' }]
+  if (pathname.startsWith('/report')) return [{ label: 'Reviews', to: '/' }, { label: 'Report' }]
   if (pathname.startsWith('/fix')) return [{ label: 'Reviews', to: '/' }, { label: 'Fix loop' }]
-  if (pathname.startsWith('/settings')) return [{ label: 'Ambiente' }, { label: 'Ajustes' }]
+  if (pathname.startsWith('/settings')) return [{ label: 'Environment' }, { label: 'Settings' }]
   return [{ label: 'Reviews' }]
 }
 
@@ -149,7 +149,7 @@ function Shell() {
   const crumbs = crumbsFor(loc.pathname)
   return (
     <div className="app">
-      <aside className="side" aria-label="Navegação principal">
+      <aside className="side" aria-label="Main navigation">
         <Link className="brand" to="/" title="Reviews">
           <img src="/logo.png" alt="" />revai <small>v1.0</small>
         </Link>
@@ -158,15 +158,15 @@ function Shell() {
           className="nav-item"
           aria-current={loc.pathname.startsWith('/new') || loc.pathname.startsWith('/configure') || loc.pathname.startsWith('/running') ? 'page' : undefined}
         >
-          <Icon name="plus" /> Nova review <kbd>N</kbd>
+          <Icon name="plus" /> New review <kbd>N</kbd>
         </NavLink>
         <NavLink to="/" className="nav-item" aria-current={loc.pathname === '/' || loc.pathname.startsWith('/report') || loc.pathname.startsWith('/fix') ? 'page' : undefined}>
           <Icon name="list" /> Reviews <kbd>G</kbd>
         </NavLink>
         <div className="nav-sep" />
-        <div className="nav-label">Ambiente</div>
+        <div className="nav-label">Environment</div>
         <NavLink to="/settings" className="nav-item" aria-current={loc.pathname.startsWith('/settings') ? 'page' : undefined}>
-          <Icon name="gear" /> Ajustes
+          <Icon name="gear" /> Settings
         </NavLink>
       </aside>
       <div className="main">
@@ -180,10 +180,10 @@ function Shell() {
             ))}
           </nav>
           <div className="spacer" />
-          <button className="btn sm" onClick={() => setPaletteOpen(true)} aria-label="Abrir command palette">
-            <Icon name="search" /> Buscar <kbd>Ctrl K</kbd>
+          <button className="btn sm" onClick={() => setPaletteOpen(true)} aria-label="Open command palette">
+            <Icon name="search" /> Search <kbd>Ctrl K</kbd>
           </button>
-          <button className="btn ghost sm" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Alternar tema">
+          <button className="btn ghost sm" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle theme">
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
           </button>
         </header>
@@ -200,9 +200,9 @@ function Shell() {
 function NotFound() {
   return (
     <div className="page">
-      <h1>Página não encontrada</h1>
-      <p className="lede">A rota acessada não existe nesta plataforma.</p>
-      <Link className="btn" to="/">Voltar para Reviews</Link>
+      <h1>Page not found</h1>
+      <p className="lede">The route you accessed doesn't exist on this platform.</p>
+      <Link className="btn" to="/">Back to Reviews</Link>
     </div>
   )
 }

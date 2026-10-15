@@ -1,4 +1,4 @@
-// consome o SSE de /api/reviews/stream e imprime os eventos (teste do fluxo real)
+// consumes the SSE events from /api/reviews/stream and prints them (test for the real flow)
 const BASE = 'http://127.0.0.1:8797'
 const body = {
   source: process.argv[2] ?? 'https://github.com/httpie/httpie/tree/feature/term-headers',
@@ -40,7 +40,7 @@ async function main() {
       if (ev.t === 'step') console.log(`[${secs}s] STEP ${ev.id} → ${ev.status}${ev.detail ? ' · ' + ev.detail : ''}`)
       else if (ev.t === 'log') console.log(`[${secs}s] LOG[${ev.stream}] ${ev.line.slice(0, 120)}`)
       else if (ev.t === 'stats') console.log(`[${secs}s] STATS ${ev.filesChanged} files +${ev.additions}/-${ev.deletions} slug=${ev.slug}`)
-      else if (ev.t === 'gate') console.log(`[${secs}s] GATE ${ev.gate.status} · críticos=${ev.gate.criticalOpen}`)
+      else if (ev.t === 'gate') console.log(`[${secs}s] GATE ${ev.gate.status} · criticalOpen=${ev.gate.criticalOpen}`)
       else if (ev.t === 'done') {
         console.log(`[${secs}s] DONE reviewId=${ev.reviewId}`)
         console.log(ev.reviewId)

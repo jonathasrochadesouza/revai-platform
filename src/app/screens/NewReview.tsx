@@ -1,4 +1,4 @@
-// 02-new-review — colar URL / pasta local, resolver, recentes
+// 02-new-review — paste URL / local folder, resolve, recents
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Icon, GateBadge, relTime, fmtDur, useToast } from '../ui'
@@ -17,7 +17,7 @@ const FORMATS = [
   'github.com/org/repo/pull/482',
   'gitlab.com/group/repo/-/merge_requests/12',
   'git@github.com:org/repo.git',
-  'caminho\\para\\pasta',
+  'path\\to\\folder',
 ]
 
 export default function NewReview() {
@@ -58,7 +58,7 @@ export default function NewReview() {
     try {
       const r = await post<{ path: string | null }>('/system/pick-folder')
       if (!r.path) {
-        toast('Nenhuma pasta selecionada')
+        toast('No folder selected')
         return
       }
       setKind('folder')
@@ -77,15 +77,15 @@ export default function NewReview() {
 
   return (
     <div className="page narrow">
-      <h1>Nova review</h1>
-      <p className="lede">Cole a URL do repositório (branch, PR, commit) ou o caminho de uma pasta local.</p>
+      <h1>New review</h1>
+      <p className="lede">Paste a repository URL (branch, PR, commit) or the path to a local folder.</p>
 
       <div className="segs row" style={{ marginBottom: 12 }}>
         {(['remote', 'folder'] as const).map((k) => (
           <button key={k} aria-pressed={kind === k}
             onClick={() => setKind(k)}
             style={{ border: 0, background: kind === k ? 'var(--bg-3)' : 'none', color: kind === k ? 'var(--fg)' : 'var(--fg-2)', padding: '6px 12px', borderRadius: 6, cursor: 'pointer', font: '500 12.5px var(--sans)' }}>
-            {k === 'remote' ? 'Remoto' : 'Pasta local'}
+            {k === 'remote' ? 'Remote' : 'Local folder'}
           </button>
         ))}
       </div>
@@ -98,22 +98,22 @@ export default function NewReview() {
         <Icon name={kind === 'remote' ? 'globe' : 'folder'} />
         <input
           autoFocus
-          placeholder={kind === 'remote' ? 'https://github.com/acme/checkout-api/tree/feature/PEQ-2450' : 'Escolha com o botão abaixo ou cole o caminho'}
+          placeholder={kind === 'remote' ? 'https://github.com/acme/checkout-api/tree/feature/PEQ-2450' : 'Pick with the button below or paste the path'}
           value={src}
           onChange={(e) => setSrc(e.target.value)}
-          aria-label="Origem da review"
+          aria-label="Review source"
         />
         <button type="submit" className="btn primary" disabled={busy || !src.trim()}>
-          {busy ? <span className="spinner" style={{ borderTopColor: 'var(--accent-fg)' }} /> : 'Resolver'} <kbd>↵</kbd>
+          {busy ? <span className="spinner" style={{ borderTopColor: 'var(--accent-fg)' }} /> : 'Resolve'} <kbd>↵</kbd>
         </button>
       </form>
 
       {kind === 'folder' && (
         <div className="row" style={{ marginTop: 10 }}>
           <button className="btn" type="button" disabled={picking} onClick={() => void pickFolderUi()}>
-            <Icon name="folder" /> {picking ? 'Seletor aberto…' : 'Escolher pasta…'}
+            <Icon name="folder" /> {picking ? 'Picker open…' : 'Choose folder…'}
           </button>
-          <span className="small faint">ou cole o caminho no campo acima — resolução automática dos dois jeitos</span>
+          <span className="small faint">or paste the path in the field above — resolved automatically either way</span>
         </div>
       )}
 
@@ -141,31 +141,31 @@ export default function NewReview() {
               <b className="mono small">{res.parsed.kind === 'folder' ? res.parsed.repo : `${res.parsed.host}/${res.parsed.org}/${res.parsed.repo}`}</b>
               <span className="small muted">{res.info.message}</span>
             </div>
-            <span className="badge ok"><span className="dot ok" />Acessível</span>
+            <span className="badge ok"><span className="dot ok" />Accessible</span>
           </div>
           <div className="row small muted">
             {res.info.headHint
               ? <><Icon name="branch" /> <span><b className="mono">{res.info.headHint.label}</b> → base <b className="mono">{res.info.defaultBranch ?? 'auto'}</b></span></>
-              : <><Icon name="branch" /> <span>branch padrão <b className="mono">{res.info.defaultBranch ?? 'auto'}</b></span></>}
+              : <><Icon name="branch" /> <span>default branch <b className="mono">{res.info.defaultBranch ?? 'auto'}</b></span></>}
           </div>
           <div className="row">
             <button className="btn primary" style={{ flex: 1 }} onClick={() => nav('/configure')}>
-              Continuar → Branch + harness
+              Continue → Branch + harness
             </button>
           </div>
         </div>
       )}
 
-      <h2 className="section"><Icon name="clock" /> Continuar de onde parou</h2>
-      {recents.length === 0 && <div className="empty small">nenhum review ainda — quando rodar, aparecem aqui</div>}
+      <h2 className="section"><Icon name="clock" /> Resume where you left off</h2>
+      {recents.length === 0 && <div className="empty small">no reviews yet — they show up here once you run one</div>}
       <div className="list card">
         {recents.map((r) => (
-          <Link key={r.id} className="list-row" to={`/report/${r.id}`} onClick={() => toast('Abrindo relatório')}>
+          <Link key={r.id} className="list-row" to={`/report/${r.id}`} onClick={() => toast('Opening report')}>
             <GateBadge status={r.gate} />
             <span className="mono small" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {r.repoLabel} · {r.head}
             </span>
-            <span className="small muted num">{r.critical} crítico(s) · {r.open} abertas</span>
+            <span className="small muted num">{r.critical} critical(s) · {r.open} open</span>
             <span className="badge">{r.harnessName}</span>
             <span className="small faint">{fmtDur(r.durationMs)} · {relTime(r.createdAt)}</span>
           </Link>
@@ -175,7 +175,7 @@ export default function NewReview() {
       <div className="callout" style={{ marginTop: 28 }}>
         <Icon name="shield" />
         <span className="small muted">
-          O código é clonado para <b className="mono">~/.revai/repos</b> e nunca sai da sua máquina. O clone é sandbox do agente — seu trabalho real não é tocado.
+          Code is cloned to <b className="mono">~/.revai/repos</b> and never leaves your machine. The clone is the agent's sandbox — your real work is untouched.
         </span>
       </div>
     </div>
