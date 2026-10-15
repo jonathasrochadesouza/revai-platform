@@ -88,8 +88,22 @@ if (!gotLock) {
     process.env.REVAI_APP_ROOT = app.getAppPath()
     process.env.REVAI_DIST = path.join(app.getAppPath(), 'dist', 'app')
     process.env.REVAI_PORT = String(port)
-    // bundles are pure JS (hono/react with no native deps) — loads straight from asar
-    require(path.join(app.getAppPath(), 'dist', 'server', 'server.cjs'))
+    // bundles are pure JS (hono/react with no native deps) — loads straight from asar;
+    // a bind/port failure becomes a clear dialog, not a raw main-process crash stack
+    try {
+      require(path.join(app.getAppPath(), 'dist', 'server', 'server.cjs'))
+    } catch (err) {
+      const { dialog } = require('electron')
+      dialog.showErrorBox(
+        'Revai Platform',
+        `Falha ao iniciar o servidor local.\n\n` +
+          `Causa: ${err?.message ?? err}\n\n` +
+          `Dica: outro revai/projeto pode estar na mesma porta (padrão 8797). ` +
+          `Feche a outra instância e abra de novo.`,
+      )
+      app.exit(1)
+      return
+    }
     await waitServer(port)
     createWindow(`http://127.0.0.1:${port}`)
   })

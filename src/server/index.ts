@@ -50,7 +50,9 @@ app.get('*', (c) => {
 
 const port = Number(process.env.REVAI_PORT ?? 8797)
 
-serve({ fetch: app.fetch, port }, (info) => {
+// bind só no loopback IPv4 — família idêntica ao probe() do electron/main.cjs,
+// assim "porta livre" é a mesma verdade para os dois (evita o crash EADDRINUSE :::8797)
+serve({ fetch: app.fetch, port, hostname: '127.0.0.1' }, (info) => {
   console.log(`
   revai · local platform
   API + UI ........ http://127.0.0.1:${port}
