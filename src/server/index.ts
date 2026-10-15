@@ -1,21 +1,21 @@
-// revai platform — API local + SPA estática (npm run start)
+// revai platform — local API + static SPA (npm run start)
 import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
 import { ensureDirs, REPOS_DIR, REVAI_DIR } from './paths'
+import { appRoot, staticDistDir } from './root'
 import { api } from './routes'
 import { readSettings } from './store'
 
-const HERE = path.dirname(fileURLToPath(import.meta.url))
-const ROOT = path.resolve(HERE, '..', '..')
-process.chdir(ROOT)
+// dev/CLI: chdir to the root so relative paths work; packaged: main.cjs sets envs — no chdir
+const ROOT = appRoot()
+if (!process.env.REVAI_APP_ROOT) process.chdir(ROOT)
 
 ensureDirs()
 
-// retenção dos clones (settings)
+// clone retention (settings)
 function cleanupClones() {
   const days = readSettings().cloneRetentionDays
   if (days <= 0) return
@@ -32,30 +32,30 @@ function cleanupClones() {
         }
       }
     }
-  } catch { /* cache vazio */ }
+  } catch { /* cache empty */ }
 }
 cleanupClones()
 
 const app = new Hono()
 app.route('/api', api)
 
-// SPA estática (produção)
-const dist = 'dist/app'
-app.use('/*', serveStatic({ root: dist }))
+// static SPA (production) — serveStatic accepts an absolute root (joined directly in fs)
+const distDir = staticDistDir()
+app.use('/*', serveStatic({ root: distDir }))
 app.get('*', (c) => {
-  const idx = path.join(process.cwd(), dist, 'index.html')
+  const idx = path.join(distDir, 'index.html')
   if (fs.existsSync(idx)) return c.html(fs.readFileSync(idx, 'utf8'))
-  return c.text('revai: build do front não encontrado — rode `npm run build` ou use `npm run dev`.', 404)
+  return c.text('revai: front-end build not found — run `npm run build` or use `npm run dev`', 404)
 })
 
 const port = Number(process.env.REVAI_PORT ?? 8797)
 
 serve({ fetch: app.fetch, port }, (info) => {
   console.log(`
-  revai · plataforma local
+  revai · local platform
   API + UI ........ http://127.0.0.1:${port}
-  Dados ........... ${REVAI_DIR} (repos/, reviews/, settings.json, harnesses.json)
-  Saia com Ctrl+C
+  Data ............ ${REVAI_DIR} (repos/, reviews/, settings.json, harnesses.json)
+  Exit with Ctrl+C
 `)
   if (process.argv.includes('--open')) {
     import('./proc').then(({ shellOpen }) => void shellOpen(`http://127.0.0.1:${port}`))

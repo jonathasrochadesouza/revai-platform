@@ -1,0 +1,39 @@
+# electron-builder — desktop artifacts per platform.
+# The app does not use node_modules at runtime: the server is bundled (dist/server/server.cjs,
+# plain JS) and the SPA is the Vite build (dist/app). main.cjs is the Electron entry.
+appId: dev.revai.platform
+productName: Revai Platform
+directories:
+  output: release
+files:
+  - package.json
+  - electron/**/*
+  - dist/app/**/*
+  - dist/server/**/*
+  - '!node_modules/**'
+asar: true
+
+win:
+  target:
+    - nsis
+  artifactName: ${name}-${version}-setup.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+
+mac:
+  target:
+    - dmg
+dmg:
+  artifactName: ${name}-${version}-${arch}.${ext}
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Utility
+  maintainer: revai
+appImage:
+  artifactName: ${name}-${version}-${arch}.${ext}
+deb:
+  artifactName: ${name}-${version}-${arch}.${ext}

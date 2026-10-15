@@ -1,20 +1,19 @@
-// Ponte com a skill revai (skill-version/revai/skills/revai):
+// Bridge to the revai skill (skill-version/revai/skills/revai):
 //   revai.mjs diff --current  → .revai/data/<slug>.patch
-//   generate-review.mjs <slug> --no-open  → valida os JSONs e gera .revai/reviews/<slug>-review.html
+//   generate-review.mjs <slug> --no-open  → validates the JSONs and generates .revai/reviews/<slug>-review.html
 import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { exec } from './proc'
 import { AppError } from './errors'
+import { appRoot } from './root'
 
-const HERE = path.dirname(fileURLToPath(import.meta.url))
-export const PLATFORM_ROOT = path.resolve(HERE, '..', '..')
+export const PLATFORM_ROOT = appRoot()
 const DEFAULT_SKILL_DIR = path.resolve(PLATFORM_ROOT, 'skill-version', 'revai', 'skills', 'revai')
 
 export function skillDir(): string {
   const dir = process.env.REVAI_SKILL_DIR ? path.resolve(process.env.REVAI_SKILL_DIR) : DEFAULT_SKILL_DIR
   if (!fs.existsSync(path.join(dir, 'scripts', 'revai.mjs'))) {
-    throw new AppError('skill/not-found', `skill revai não encontrada em ${dir}`, 'Defina REVAI_SKILL_DIR ou mantenha skill-version/ na raiz do projeto.')
+    throw new AppError('skill/not-found', `revai skill not found in ${dir}`, 'Set REVAI_SKILL_DIR or keep skill-version/ at the project root')
   }
   return dir
 }
@@ -35,7 +34,7 @@ export interface DiffOutput {
   deletions: number
 }
 
-/** rodar `node revai.mjs diff --current` no clone; retorna artefato + stats */
+/** run `node revai.mjs diff --current` in the clone; returns artifact + stats */
 export async function runDiff(cloneDir: string): Promise<DiffOutput> {
   const r = await exec([process.execPath, path.join(skillDir(), 'scripts', 'revai.mjs'), 'diff', '--current'], {
     cwd: cloneDir,
@@ -45,7 +44,7 @@ export async function runDiff(cloneDir: string): Promise<DiffOutput> {
     const emptyHint = /empty/i.test(r.stderr) || /nothing to review|sem mudanças/i.test(r.stderr)
     throw new AppError(
       emptyHint ? 'repo/empty-diff' : 'diff/failed',
-      emptyHint ? 'Patch vazio — nenhuma mudança entre base e head' : 'revai.mjs diff terminou com erro',
+      emptyHint ? 'Empty patch — no changes between base and head' : 'revai.mjs diff finished with an error',
       r.stderr.trim().split('\n').slice(-3).join('\n') || undefined,
       emptyHint ? 409 : 500,
     )
@@ -58,7 +57,7 @@ export async function runDiff(cloneDir: string): Promise<DiffOutput> {
   const slug = kv['Slug'] ?? ''
   const patchPath = kv['Patch'] ?? ''
   if (!slug || !patchPath) {
-    throw new AppError('diff/failed', 'diff não retornou artefatos', r.stdout.trim())
+    throw new AppError('diff/failed', 'diff returned no artifacts', r.stdout.trim())
   }
   const lm = kv['Lines']?.match(/^\+(\d+)\s*\/\s*-(\d+)$/)
   const fm = kv['Files']?.match(/^(\d+)/)
@@ -71,7 +70,7 @@ export async function runDiff(cloneDir: string): Promise<DiffOutput> {
   }
 }
 
-/** valida os JSONs + monta o HTML da skill. Erro aqui = schema/validation (mensagens reais do script). */
+/** validates the JSONs + assembles the skill HTML. An error here = schema/validation (real script messages). */
 export async function generateReview(cloneDir: string, slug: string, timeoutMs = 120_000): Promise<{ htmlPath: string }> {
   const r = await exec([process.execPath, path.join(skillDir(), 'scripts', 'generate-review.mjs'), slug, '--no-open'], {
     cwd: cloneDir,
@@ -80,7 +79,7 @@ export async function generateReview(cloneDir: string, slug: string, timeoutMs =
   if (r.code !== 0) {
     throw new AppError(
       'schema/validation',
-      'Validação do schema V2 falhou — nada é gerado até passar',
+      'Schema V2 validation failed — nothing is generated until it passes',
       r.stderr.trim().split('\n').slice(-4).join('\n') || r.stdout.trim().split('\n').slice(-4).join('\n'),
     )
   }

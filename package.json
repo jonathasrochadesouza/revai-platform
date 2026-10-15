@@ -2,15 +2,21 @@
   "name": "revai-platform",
   "version": "0.1.0",
   "private": true,
+  "author": "revai",
   "type": "module",
-  "description": "A skill revai com interface: mesmo fluxo de 5 passos e mesmo contrato de dados (schema V2, Quality Gate, fix loop), agora com repos remotos e escolha/validação de harness local.",
-  "engines": { "node": ">=20.9" },
+  "description": "The local host for the revai skill: the same 5-step flow and data contract (schema V2, Quality Gate, fix loop) with remote repos and local harness selection/validation.",
+  "main": "electron/main.cjs",
+  "engines": {
+    "node": ">=20.9"
+  },
   "scripts": {
     "dev": "concurrently -n server,app -c yellow,cyan \"npm:dev:server\" \"npm:dev:app\"",
     "dev:server": "tsx watch src/server/index.ts",
     "dev:app": "vite",
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
+    "dist:server": "esbuild src/server/index.ts --bundle --platform=node --format=cjs --define:import.meta.url=undefined --outfile=dist/server/server.cjs",
+    "dist:desktop": "npm run build && npm run dist:server && electron-builder",
     "start": "tsx src/server/index.ts --serve",
     "test": "vitest run"
   },
@@ -27,9 +33,15 @@
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^4.5.0",
     "concurrently": "^9.1.0",
+    "electron": "^44.7.2",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
     "tsx": "^4.20.0",
     "typescript": "^5.8.0",
     "vite": "^7.0.0",
     "vitest": "^3.2.0"
+  },
+  "allowScripts": {
+    "electron@44.7.2": true
   }
 }
