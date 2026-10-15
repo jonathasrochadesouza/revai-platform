@@ -9,6 +9,15 @@ with a repo-local tens-based patch ladder — rules in
 
 ## [Unreleased]
 
+## [1.1.40] - 2026-10-15
+
+### Changed
+
+- docs: rebrand — the repo-root hard-hat logo is now the official mark on every
+  surface: README retitled and restructured to the current reality, the app public
+  logo swapped (header, onboarding, favicon) and `build/icon.png` added so
+  electron-builder stamps the brand on NSIS/dmg/AppImage/deb
+
 ## [1.1.30] - 2026-10-15
 
 ### Changed
@@ -58,7 +67,8 @@ with a repo-local tens-based patch ladder — rules in
 
 - Project translated to en-us (docs, UI strings and startup banner)
 
-[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.30...HEAD
+[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.40...HEAD
+[1.1.40]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.30...v1.1.40
 [1.1.30]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.20...v1.1.30
 [1.1.20]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.0...v1.1.20
 [1.1.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.0.0...v1.1.0

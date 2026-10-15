@@ -1,17 +1,17 @@
 <div align="center">
   <img src="logo.png" alt="revai" width="120">
 
-# revai
+# REVAI PLATFORM
 
-**AI code review, running 100% on your machine.**
+**AI code review, running 100% on your machine using your harness.**
 
-[![status](https://img.shields.io/badge/status-prot%C3%B3tipo_implementado-facc15?labelColor=18181b)](#-getting-started) [![release](https://img.shields.io/github/v/release/jonathasrochadesouza/revai-platform?color=38bdf8&labelColor=18181b)](https://github.com/jonathasrochadesouza/revai-platform/releases/latest) [![node](https://img.shields.io/badge/node-%E2%89%A520.9-334155?labelColor=18181b)](https://nodejs.org) [![privacy](https://img.shields.io/badge/privacidade-dados_locais-4ade80?labelColor=18181b)](#-data--privacy)
-
-</div>
+[![status](https://img.shields.io/badge/status-mvp-facc15?labelColor=18181b)](#-getting-started) [![release](https://img.shields.io/github/v/release/jonathasrochadesouza/revai-platform?color=38bdf8&labelColor=18181b)](https://github.com/jonathasrochadesouza/revai-platform/releases/latest) [![node](https://img.shields.io/badge/node-%E2%89%A520.9-334155?labelColor=18181b)](https://nodejs.org) [![privacy](https://img.shields.io/badge/privacy-local_data-4ade80?labelColor=18181b)](#-data--privacy)
 
 ---
 
-The platform is the **local host for the skill** [`skill-version/revai`](./skill-version/revai): you point it at a remote repo (branch, PR, MR, commit) **or a local folder**, and the CLI agent on your machine runs the review — the same 5-step pipeline, Quality Gate and fix loop from the skill, now with orchestration and a UI.
+The platform is the **local host for the skill** [`jonathasrochadesouza/revai.git`](https://github.com/jonathasrochadesouza/revai.git): you point it at a remote repo (branch, PR, MR, commit) **or a local folder**, and the CLI agent on your machine runs the review with a UI.
+
+</div>
 
 ## ✨ Highlights
 
@@ -22,16 +22,6 @@ The platform is the **local host for the skill** [`skill-version/revai`](./skill
 - 💾 **100% local** — no telemetry; data in `~/.revai`, commits only with your click
 
 ## 🧭 How it works
-
-```mermaid
-flowchart TD
-    A[URL / local folder] --> B[resolve + accessibility]
-    B --> C[clone into ~/.revai/repos + checkout head]
-    C --> D["revai.mjs diff --current → patch"]
-    D --> E["local harness via stdin<br/>→ review.json + meta.json"]
-    E --> F["schema V2 validation<br/>→ HTML report"]
-    F --> G[fix loop: apply → tests → gate delta]
-```
 
 The pipeline is the skill's own (`revai.mjs` + `generate-review.mjs`); the platform orchestrates and renders it:
 
@@ -51,7 +41,33 @@ The pipeline is the skill's own (`revai.mjs` + `generate-review.mjs`); the platf
 
 > The prompt always goes **via stdin** (avoids the Windows line-length limit). Custom flags: edit `customArgs` in `~/.revai/harnesses.json` (tokens `{exe} {prompt} {model}`).
 
-## 🚀 Getting started
+## 📥 Desktop & downloads
+
+Grab a ready-to-run build from the [latest GitHub Release](https://github.com/jonathasrochadesouza/revai-platform/releases/latest):
+
+| Asset | Platform |
+|---|---|
+| `revai-platform-<v>-setup.exe` | Windows — installer (choose the folder, Start Menu shortcut) |
+| `revai-platform-<v>-portable-win-x64.zip` | Windows — portable: unzip anywhere and run `Revai Platform.exe` |
+| `revai-platform-<v>-arm64.dmg` | macOS — Apple Silicon (M1+) |
+| `revai-platform-<v>-x86_64.AppImage` | Linux — most distros |
+| `revai-platform-<v>-amd64.deb` | Debian/Ubuntu |
+
+Notes:
+
+- The bundled shell starts its own local server (port 8797, falls back to the next free one), so there is no `npm start` to keep alive; data still lives in `~/.revai`
+- Builds are unsigned for now: expect SmartScreen (Windows) or Gatekeeper (macOS) warnings — "More info → Run anyway" / right-click → Open
+- Requires Git and at least one harness CLI on the machine PATH (same prerequisites as the web flow)
+- To build the packages yourself: `npm run dist:desktop` (artifacts land in `release/`)
+
+## 🏷️ Releases & versioning
+
+- **Every push to `main` turns into a GitHub Release** — the `release` workflow builds Windows, macOS and Linux in parallel and publishes the tagged version
+- The push carries the version: `CHANGELOG.md` (top section) is the single source of truth, and `package.json` must match it. `scripts/check-release.mjs` runs the same gate locally before you push
+- The gate **fails the CI** when the CHANGELOG is missing, not touched in the pushed commits, below the last tag, or out of sync with `package.json`
+- The patch moves on a tens ladder: docs/micro `+10`, small fixes `+20`, large fixes `+30`; new features bump the minor; breaking changes bump the major (rubric in [`.agents/skills/bump-version`](.agents/skills/bump-version/SKILL.md))
+
+## 🚀 Getting started (Dev Mode)
 
 **Prerequisites:** Node ≥ 20.9 (22+ recommended), Git and at least one harness CLI on the PATH.
 
@@ -79,32 +95,6 @@ Environment variables:
 | `REVAI_PORT` | `8797` | Port for the API/UI |
 | `REVAI_HOME` | `~/.revai` | Data directory (repos, reviews, settings) |
 | `REVAI_SKILL_DIR` | `./skill-version/revai/skills/revai` | Where the skill scripts live |
-
-## 📥 Desktop & downloads
-
-Grab a ready-to-run build from the [latest GitHub Release](https://github.com/jonathasrochadesouza/revai-platform/releases/latest):
-
-| Asset | Platform |
-|---|---|
-| `revai-platform-<v>-setup.exe` | Windows — installer (choose the folder, Start Menu shortcut) |
-| `revai-platform-<v>-portable-win-x64.zip` | Windows — portable: unzip anywhere and run `Revai Platform.exe` |
-| `revai-platform-<v>-arm64.dmg` | macOS — Apple Silicon (M1+) |
-| `revai-platform-<v>-x86_64.AppImage` | Linux — most distros |
-| `revai-platform-<v>-amd64.deb` | Debian/Ubuntu |
-
-Notes:
-
-- The bundled shell starts its own local server (port 8797, falls back to the next free one), so there is no `npm start` to keep alive; data still lives in `~/.revai`
-- Builds are unsigned for now: expect SmartScreen (Windows) or Gatekeeper (macOS) warnings — "More info → Run anyway" / right-click → Open
-- Requires Git and at least one harness CLI on the machine PATH (same prerequisites as the web flow)
-- To build the packages yourself: `npm run dist:desktop` (artifacts land in `release/`)
-
-## 🏷️ Releases & versioning
-
-- **Every push to `main` turns into a GitHub Release** — the `release` workflow builds Windows, macOS and Linux in parallel and publishes the tagged version
-- The push carries the version: `CHANGELOG.md` (top section) is the single source of truth, and `package.json` must match it. `scripts/check-release.mjs` runs the same gate locally before you push
-- The gate **fails the CI** when the CHANGELOG is missing, not touched in the pushed commits, below the last tag, or out of sync with `package.json`
-- The patch moves on a tens ladder: docs/micro `+10`, small fixes `+20`, large fixes `+30`; new features bump the minor; breaking changes bump the major (rubric in [`.agents/skills/bump-version`](.agents/skills/bump-version/SKILL.md))
 
 ## 🖥️ Screens
 
@@ -166,14 +156,6 @@ electron/             desktop shell: main.cjs (server in-process, port probe, si
 electron-builder.yml  NSIS / dmg / AppImage / deb targets (asar, no node_modules at runtime)
 scripts/              manual probes (desktop ports, SSE, fix-cancel) · check-release.mjs (release gate)
 ```
-
-## 🛣️ Roadmap
-
-- [ ] Full ACP handshake (per-item checklist, read-only session)
-- [ ] Secret redaction before the patch leaves the clone
-- [ ] Edit harness templates from the UI (screen 08)
-- [ ] Review comparison and scheduled multi-reviews
-- [ ] Aggregated insights across repos
 
 ---
 
