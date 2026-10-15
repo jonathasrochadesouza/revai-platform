@@ -9,6 +9,16 @@ with a repo-local tens-based patch ladder — rules in
 
 ## [Unreleased]
 
+## [1.1.30] - 2026-10-15
+
+### Changed
+
+- docs: README gains desktop & downloads table (installer, portable, dmg,
+  AppImage, deb), release badge, releases & versioning (tens ladder + gate rules)
+  and the updated structure (electron/, scripts/, release workflow);
+  AGENTS.md syncs the CI reality (release.yml in the validation loop,
+  bump-version skill in the skills list)
+
 ## [1.1.20] - 2026-10-15
 
 ### Fixed
@@ -48,7 +58,8 @@ with a repo-local tens-based patch ladder — rules in
 
 - Project translated to en-us (docs, UI strings and startup banner)
 
-[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.20...HEAD
+[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.30...HEAD
+[1.1.30]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.20...v1.1.30
 [1.1.20]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.0...v1.1.20
 [1.1.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/jonathasrochadesouza/revai-platform/releases/tag/v1.0.0

@@ -5,7 +5,7 @@
 
 **AI code review, running 100% on your machine.**
 
-[![status](https://img.shields.io/badge/status-prot%C3%B3tipo_implementado-facc15?labelColor=18181b)](#-getting-started) [![node](https://img.shields.io/badge/node-%E2%89%A520.9-334155?labelColor=18181b)](https://nodejs.org) [![privacy](https://img.shields.io/badge/privacidade-dados_locais-4ade80?labelColor=18181b)](#-data--privacy)
+[![status](https://img.shields.io/badge/status-prot%C3%B3tipo_implementado-facc15?labelColor=18181b)](#-getting-started) [![release](https://img.shields.io/github/v/release/jonathasrochadesouza/revai-platform?color=38bdf8&labelColor=18181b)](https://github.com/jonathasrochadesouza/revai-platform/releases/latest) [![node](https://img.shields.io/badge/node-%E2%89%A520.9-334155?labelColor=18181b)](https://nodejs.org) [![privacy](https://img.shields.io/badge/privacidade-dados_locais-4ade80?labelColor=18181b)](#-data--privacy)
 
 </div>
 
@@ -80,6 +80,32 @@ Environment variables:
 | `REVAI_HOME` | `~/.revai` | Data directory (repos, reviews, settings) |
 | `REVAI_SKILL_DIR` | `./skill-version/revai/skills/revai` | Where the skill scripts live |
 
+## 📥 Desktop & downloads
+
+Grab a ready-to-run build from the [latest GitHub Release](https://github.com/jonathasrochadesouza/revai-platform/releases/latest):
+
+| Asset | Platform |
+|---|---|
+| `revai-platform-<v>-setup.exe` | Windows — installer (choose the folder, Start Menu shortcut) |
+| `revai-platform-<v>-portable-win-x64.zip` | Windows — portable: unzip anywhere and run `Revai Platform.exe` |
+| `revai-platform-<v>-arm64.dmg` | macOS — Apple Silicon (M1+) |
+| `revai-platform-<v>-x86_64.AppImage` | Linux — most distros |
+| `revai-platform-<v>-amd64.deb` | Debian/Ubuntu |
+
+Notes:
+
+- The bundled shell starts its own local server (port 8797, falls back to the next free one), so there is no `npm start` to keep alive; data still lives in `~/.revai`
+- Builds are unsigned for now: expect SmartScreen (Windows) or Gatekeeper (macOS) warnings — "More info → Run anyway" / right-click → Open
+- Requires Git and at least one harness CLI on the machine PATH (same prerequisites as the web flow)
+- To build the packages yourself: `npm run dist:desktop` (artifacts land in `release/`)
+
+## 🏷️ Releases & versioning
+
+- **Every push to `main` turns into a GitHub Release** — the `release` workflow builds Windows, macOS and Linux in parallel and publishes the tagged version
+- The push carries the version: `CHANGELOG.md` (top section) is the single source of truth, and `package.json` must match it. `scripts/check-release.mjs` runs the same gate locally before you push
+- The gate **fails the CI** when the CHANGELOG is missing, not touched in the pushed commits, below the last tag, or out of sync with `package.json`
+- The patch moves on a tens ladder: docs/micro `+10`, small fixes `+20`, large fixes `+30`; new features bump the minor; breaking changes bump the major (rubric in [`.agents/skills/bump-version`](.agents/skills/bump-version/SKILL.md))
+
 ## 🖥️ Screens
 
 | # | Screen | Route |
@@ -129,10 +155,16 @@ src/
 │  ├─ pipeline.ts     review orchestration (SSE)
 │  ├─ fixloop.ts      fix queue (apply → tests → gate delta)
 │  ├─ git.ts          plumbing: clone, checkout, numstat, push, reset
-│  └─ harnesses.ts    discovery, validation and invocation templates
+│  ├─ harnesses.ts    discovery, validation and invocation templates
+│  ├─ root.ts         app root / dist resolution (dev tsx, bundled CJS, Electron asar)
+│  └─ skill.ts        bridge with the revai skill (REVAI_SKILL_DIR)
 └─ app/               react 19 + vite (styles.css = port of the prototype)
    ├─ screens/        Onboarding · NewReview · Configure · Running · Report · Fix · History · Settings · States
    └─ ui.tsx          badges, stepper, terminal, code-diff, toasts, gate panel
+
+electron/             desktop shell: main.cjs (server in-process, port probe, single instance)
+electron-builder.yml  NSIS / dmg / AppImage / deb targets (asar, no node_modules at runtime)
+scripts/              manual probes (desktop ports, SSE, fix-cancel) · check-release.mjs (release gate)
 ```
 
 ## 🛣️ Roadmap
