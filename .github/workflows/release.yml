@@ -57,16 +57,29 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run dist:server
-      - run: npx electron-builder ${{ matrix.args }} --publish never
+      - name: build e sobe assets no draft
+        run: npx electron-builder ${{ matrix.args }} --publish always
         env:
-          # v1 sem assinatura: pula descoberta automática de certificado no macOS/Windows
+          # v1 sem assinatura: pula descoberta de certificado; o publisher nativo
+          # do electron-builder cria/reusa o draft de v*, sobe os assets com retry
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-      - name: zip portable (windows)
+          GH_TOKEN: ${{ github.token }}
+      - name: zip portable + upload
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.validate.outputs.version }}
         run: |
           Compress-Archive -Path 'release/win-unpacked/*' `
-            -DestinationPath "release/revai-platform-${{ needs.validate.outputs.version }}-portable-win-x64.zip" -Force
+            -DestinationPath "release/revai-platform-$env:VERSION-portable-win-x64.zip" -Force
+          # o draft pode demorar a aparecer a nível de API; aguarda antes do upload
+          for ($i = 0; $i -lt 20; $i++) {
+            gh release view "v$env:VERSION" 2>$null >$null
+            if ($LASTEXITCODE -eq 0) { break }
+            Start-Sleep -Seconds 15
+          }
+          gh release upload "v$env:VERSION" "release/revai-platform-$env:VERSION-portable-win-x64.zip" --clobber
       - name: upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -86,19 +99,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-      - name: extrai notas da seção do CHANGELOG
-        run: node scripts/check-release.mjs --notes "${{ needs.validate.outputs.version }}" > notes.md
-      - name: cria/atualiza release v${{ needs.validate.outputs.version }}
+      - name: aguarda draft e valida assets
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.validate.outputs.version }}
         run: |
-          gh release view "v$VERSION" >/dev/null 2>&1 || \
-            gh release create "v$VERSION" --title "v$VERSION" --notes-file notes.md
-          gh release upload "v$VERSION" "artifacts/**/*" --clobber
+          for i in $(seq 1 40); do
+            gh release view "v$VERSION" >/dev/null 2>&1 && break
+            echo "waiting draft v$VERSION..."
+            sleep 15
+          done
+          gh release view "v$VERSION" >/dev/null
+          COUNT=$(gh release view "v$VERSION" --json assets -q '.assets | length')
+          echo "assets=$COUNT"
+          if [ "$COUNT" -lt 8 ]; then
+            echo "::error::Release v$VERSION com poucos assets ($COUNT < 8) — build incompleta?"
+            exit 1
+          fi
+      - name: extrai notas do CHANGELOG e publica
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          node scripts/check-release.mjs --notes "$VERSION" > notes.md
+          gh release edit "v$VERSION" --notes-file notes.md --draft=false --latest

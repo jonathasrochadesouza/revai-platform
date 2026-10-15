@@ -86,13 +86,16 @@ if (process.env.GITHUB_OUTPUT) {
   fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\n`)
 }
 
-console.log(
-  `check-release: OK — próxima release v${version} (${date})${
-    latestTag ? ` · tag anterior v${latestTag}` : ' · primeira release'
-  }`,
-)
+if (!flags.notes) {
+  console.log(
+    `check-release: OK — próxima release v${version} (${date})${
+      latestTag ? ` · tag anterior v${latestTag}` : ' · primeira release'
+    }`,
+  )
+}
 
 // --notes <versão>: imprime o corpo da seção (usado pelo job publish no body do Release)
+// em modo --notes a linha de status do portão fica fora da saída (body limpo)
 if (flags.notes) {
   const startMarker = `## [${flags.notes}] -`
   const start = changelog.indexOf(startMarker)

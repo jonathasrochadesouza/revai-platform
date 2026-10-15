@@ -9,6 +9,15 @@ with a repo-local tens-based patch ladder — rules in
 
 ## [Unreleased]
 
+## [1.1.20] - 2026-10-15
+
+### Fixed
+
+- Release assets were racing the freshly created release (HTTP 404 on upload):
+  the three build targets now publish via electron-builder's native GitHub
+  publisher (retry + draft release) and a final job waits for the draft,
+  validates the asset count (>= 8) and publishes it with CHANGELOG-based notes
+
 ## [1.1.0] - 2026-10-15
 
 ### Added
@@ -39,6 +48,7 @@ with a repo-local tens-based patch ladder — rules in
 
 - Project translated to en-us (docs, UI strings and startup banner)
 
-[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.20...HEAD
+[1.1.20]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.0...v1.1.20
 [1.1.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/jonathasrochadesouza/revai-platform/releases/tag/v1.0.0
