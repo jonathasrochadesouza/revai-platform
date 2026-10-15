@@ -9,6 +9,16 @@ with a repo-local tens-based patch ladder — rules in
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-15
+
+### Added
+
+- GitHub Actions release pipeline: every push to `main` validates the CHANGELOG
+  gate (file exists, bump present in the pushed commits, package.json synced),
+  builds Windows/macOS/Linux in parallel and publishes a GitHub Release with
+  installer, portable zip (Windows), DMG, AppImage and deb assets
+- `scripts/check-release.mjs` — release gate; runs in CI and locally
+
 ## [1.0.0] - 2026-10-15
 
 ### Added
@@ -29,5 +39,6 @@ with a repo-local tens-based patch ladder — rules in
 
 - Project translated to en-us (docs, UI strings and startup banner)
 
-[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/jonathasrochadesouza/revai-platform/releases/tag/v1.0.0

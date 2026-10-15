@@ -23,6 +23,8 @@ Skill conventions (Agent Skills spec): folder name equals the `name` field (keba
 | Typecheck | `npm run typecheck` |
 | Tests | `npm run test` (Vitest) |
 | Build | `npm run build` (typecheck + Vite build) |
+| Desktop server bundle | `npm run dist:server` |
+| Package desktop | `npm run dist:desktop` (installer + portable + dmg/AppImage/deb targets) |
 
 Package manager is **npm** (never pnpm/yarn). Node >= 20.9. Primary dev machine is Windows — quote paths and prefer forward slashes in git paths.
 
