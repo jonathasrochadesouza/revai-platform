@@ -1,83 +1,76 @@
-[![status](https://img.shields.io/badge/status-prot%C3%B3tipo_implementado-facc15?labelColor=18181b)](#-como-rodar) ![node](https://img.shields.io/badge/node-%E2%89%A520.9-334155?labelColor=18181b) ![licen%C3%A7a](https://img.shields.io/badge/dados-locais-4ade80?labelColor=18181b)
+<div align="center">
+  <img src="logo.png" alt="revai" width="120">
 
-# revai · plataforma
+# revai
 
-> **A skill `revai` com interface:** mesmo fluxo de 5 passos e mesmo contrato de dados (schema V2, Quality Gate, fix loop), agora com repos remotos e escolha/validação de harness local. Todo o resto do legacy ficou de fora.
+**Code review com IA, rodando 100% na sua máquina.**
 
-A plataforma é um **host local para a skill** [`skill-version/revai`](./skill-version/revai): você cola a URL de um repo (branch, PR, MR, commit) **ou escolhe uma pasta local com o seletor nativo do sistema**, e o runner padrão da máquina — definido no primeiro setup (`01`) — executa a revisão sobre os changes. Acompanha os 5 passos ao vivo, recebe o relatório e resolve pelo fix loop: tudo em `127.0.0.1`, sem mandar nada para a nuvem.
+[![status](https://img.shields.io/badge/status-prot%C3%B3tipo_implementado-facc15?labelColor=18181b)](#-como-rodar) [![node](https://img.shields.io/badge/node-%E2%89%A520.9-334155?labelColor=18181b)](https://nodejs.org) [![privacidade](https://img.shields.io/badge/privacidade-dados_locais-4ade80?labelColor=18181b)](#-dados-e-privacidade)
+
+</div>
 
 ---
 
-## ⚙️ Como funciona
+A plataforma é o **host local da skill** [`skill-version/revai`](./skill-version/revai): você aponta um repo remoto (branch, PR, MR, commit) **ou uma pasta local**, e o agente CLI da sua máquina executa a revisão — o mesmo pipeline de 5 passos, Quality Gate e fix loop da skill, agora com orquestração e interface.
+
+## ✨ Destaques
+
+- 👀 **5 passos ao vivo** — resolve → clone → diff → skill → relatório, com log em streaming (SSE)
+- ✅ **Quality Gate** — espelho fiel de `computeGate()`: fail só com `critical` aberto
+- 🔁 **Fix loop** — aplica a correção, roda os testes e mostra o delta do Gate
+- 🤖 **Harness à sua escolha** — `kiro-cli`, `claude`, `codex`, `opencode` ou `copilot`, configurado no onboarding
+- 💾 **100% local** — sem telemetria; dados em `~/.revai`, commits só com o seu clique
+
+## 🧭 Como funciona
 
 ```mermaid
 flowchart TD
-    A[URL / pasta local] --> B[01 · resolve + acessibilidade]
-    B --> C[02 · clone em ~/.revai/repos + checkout head]
-    C --> D["revai.mjs diff --current → .revai/data/&lt;slug&gt;.patch"]
-    D --> E[harness local executa a skill via stdin<br/>→ &lt;slug&gt;-review.json + &lt;slug&gt;-meta.json]
-    E --> F["generate-review.mjs valida schema V2<br/>→ .revai/reviews/&lt;slug&gt;-review.html"]
-    F --> G[05 · relatório na UI (Gate + findings)]
-    G --> H[06 · fix loop: aplicar → testes → gate delta]
+    A[URL / pasta local] --> B[resolve + acessibilidade]
+    B --> C[clone em ~/.revai/repos + checkout head]
+    C --> D["revai.mjs diff --current → patch"]
+    D --> E["harness local via stdin<br/>→ review.json + meta.json"]
+    E --> F["validação schema V2<br/>→ relatório HTML"]
+    F --> G[fix loop: aplicar → testes → gate delta]
 ```
 
-O **pipeline é o da skill** — a plataforma é orquestração e interface:
+O pipeline é o da skill (`revai.mjs` + `generate-review.mjs`); a plataforma orquestra e desenha:
 
-1. **Preparar clone** — resolve `github.com/org/repo/tree/branch`, `pull/482`, `merge-requests/12`, `@sha` ou pasta local; clona em cache `~/.revai/repos/<host>/<org>/<repo>`.
-2. **Gerar patch** — roda `node revai.mjs diff --current` no clone (a própria skill detecta a base via `origin/HEAD` e `merge-base`), gerando `.revai/data/<slug>.patch`.
-3. **Analisar mudanças** — o harness recebe **via stdin** um prompt com os caminhos da skill (`SKILL.md`, `references/rubric.md`, `references/stack-playbooks.md`), as regras do projeto (`.revai/rules.md` > `CODING_STANDARDS.md`/`CONTRIBUTING.md`) e o escopo do patch — e escreve os dois JSONs.
-4. **Validar schema** — `node generate-review.mjs <slug> --no-open` valida contra o **schema V2 da skill**. Falha = nada é gerado = estado de erro na UI com a **mensagem real do script**.
-5. **Montar relatório** — record + gate espelham `computeGate()` da skill; artefatos ficam em `~/.revai/reviews/<id>/` e o HTML da skill abre com um clique.
+1. **Resolver** — `github.com/org/repo/tree/branch`, `pull/482`, `merge-requests/12`, `@sha` ou pasta local.
+2. **Clonar e diff** — clone em `~/.revai/repos/<host>/<org>/<repo>` e `diff --current` contra a base (`origin/HEAD` + `merge-base`).
+3. **Revisar** — o harness recebe via stdin o escopo do patch, as regras do projeto (`.revai/rules.md` > `CODING_STANDARDS.md`/`CONTRIBUTING.md`) e os caminhos da skill; ele só lê código e escreve em `.revai/` do clone.
+4. **Validar** — schema V2 da skill; se falhar, nada é gerado e a UI mostra o erro real.
+5. **Relatar e corrigir** — Gate + findings na UI; no fix loop as edições ficam unstaged até você pedir o push (`revai/fix-<slug>`).
 
----
+| Harness | Invocação padrão |
+|---------|------------------|
+| Kiro CLI | `kiro-cli exec` |
+| Claude Code | `claude -p --allowedTools "Write,Read,Glob,Grep" --disallowedTools Bash` |
+| Codex | `codex exec --sandbox workspace-write` |
+| OpenCode | `opencode run` |
+| Copilot CLI | `copilot -p` (experimental) |
 
-## 🖥️ Telas
-
-| # | Tela | Rota | O que faz |
-|---|------|------|-----------|
-| 01 | Onboarding (`/onboarding`) | Detecta CLIs no PATH, valida com **checklist cronometrado** e define o **runner padrão** — a única superfície de gestão de harness da v1 |
-| 02 | Nova review | `/new` | Cola URL/pasta **ou escolhe a pasta pelo diálogo nativo do sistema**, resolve e mostra card de acessibilidade + **"Continuar de onde parou"** |
-| 03 | Configure | `/configure` | head/base com badge de commits, mini-bars por arquivo (lockfiles ignorados), regras detectadas, harness + modelo, estimativa de tempo |
-| 04 | Running | `/running` | Stepper com os 5 passos, **log bruto via SSE**, timer, cancelamento com artefatos parciais |
-| 05 | Relatório | `/report/:id` | Gate + criteria, lista + detalhe ("O que é" / "Por que importa" / correção proposta), filtros, Pular/Restaurar, **Copiar prompt**, atalhos J/K/S/C/F |
-| 06 | Fix loop | `/fix/:id` | Fila de correções com apply → testes → **delta do Gate**; saídas: push `revai/fix-*`, download `.patch`, abrir no editor, descartar |
-| 07 | History | `/` | Todas as reviews com resultado do Gate, filtros por repo/status/texto |
-| 09 | Settings | `/settings` | Tema, branch base padrão, switches, **regras globais**, cache de clones + retenção, Acesso git (credential helper) |
-| 10 | Estados | `/states` | Catálogo dos estados desenhados (vazio/carregando/erro/cancelado/passed) servido pelo catálogo real de erros da API |
-
-> A 08 (`/harnesses`) do protótipo **não existe na plataforma v1** — a gestão de harnesses virou complexidade desnecessária: o runner padrão se define no onboarding e aparece nas telas 02/03 apenas como status. O modelo de invocation avançado fica no `~/.revai/harnesses.json`.
-
-## ⌨️ Atalhos
-
-| Tecla | Onde | Ação |
-|-------|------|------|
-| `Ctrl K` / `⌘K` | global | Command palette (ações + reviews recentes + colar URL) |
-| `N` | global | Nova review |
-| `T` | global | Alternar tema |
-| `Ctrl ↵` | 03 | Iniciar review |
-| `J` / `K` | 05 | Próximo / anterior finding |
-| `S` | 05 | Pular / restaurar finding |
-| `C` | 05 | Copiar prompt (`Fix CR-01 in the revai review of <slug>`) |
-| `F` | 05 | Mandar o finding para o fix loop |
-| `Esc` | global | Fechar palette |
-
----
+> O prompt vai **sempre via stdin** (evita limite de linha no Windows). Flags próprias: edite `customArgs` em `~/.revai/harnesses.json` (tokens `{exe} {prompt} {model}`).
 
 ## 🚀 Como rodar
 
-**Pré-requisitos:** Node ≥ 20.9 (22+ recomendado), Git, e pelo menos um harness CLI instalado (ex.: `kiro-cli`, `claude`, `codex`, `opencode`). A skill fica junto — [`skill-version/revai`](./skill-version/revai) — e é descoberta automaticamente (ou via `REVAI_SKILL_DIR`).
+**Pré-requisitos:** Node ≥ 20.9 (22+ recomendado), Git e pelo menos um harness CLI no PATH.
 
 ```bash
-# desenvolvimento (API :8797 + Vite :5173 com proxy)
 npm install
-npm run dev          # abre http://localhost:5173
 
-# produção local (API + UI no mesmo :8797)
+# desenvolvimento — API :8797 + Vite :5173 (proxy)
+npm run dev           # http://localhost:5173
+
+# produção local — API + UI na mesma porta
 npm run build
-npm start            # http://127.0.0.1:8797  (--open abre o navegador)
+npm start             # http://127.0.0.1:8797  (--open abre o navegador)
+
+# qualidade
+npm run typecheck     # TypeScript sem emitir
+npm test              # vitest
 ```
 
-> ⚠️ **A UI depende do processo da API.** Se a página mostrar **"Servidor local offline"** (ou um `Failed to fetch` em alguma ação), o `npm start` não está rodando — ele deve permanecer vivo enquanto você usa a plataforma. O banner sumirá sozinho assim que a API responder.
+> ⚠️ **A UI depende da API.** Se aparecer "Servidor local offline", o `npm start` não está rodando — mantenha o processo vivo.
 
 Variáveis de ambiente:
 
@@ -87,62 +80,69 @@ Variáveis de ambiente:
 | `REVAI_HOME` | `~/.revai` | Diretório de dados (repos, reviews, settings) |
 | `REVAI_SKILL_DIR` | `./skill-version/revai/skills/revai` | Onde estão os scripts da skill |
 
-Scripts: `dev · build · start · typecheck · test`.
+## 🖥️ Telas
 
----
+| # | Tela | Rota |
+|---|------|------|
+| 01 | Onboarding — detecta CLIs e define o runner padrão | `/onboarding` |
+| 02 | Nova review — URL ou pasta local, "continuar de onde parou" | `/new` |
+| 03 | Configure — escopo, base, regras, harness e estimativa | `/configure` |
+| 04 | Running — stepper dos 5 passos com log bruto | `/running` |
+| 05 | Relatório — Gate + findings, filtros e Pular/Restaurar | `/report/:id` |
+| 06 | Fix loop — fila de correções com teste e delta do Gate | `/fix/:id` |
+| 07 | History — todas as reviews com resultado do Gate | `/` |
+| 09 | Settings — tema, regras globais, cache e acesso git | `/settings` |
+| 10 | States — catálogo dos estados desenhados | `/states` |
 
-## 🤝 Contrato com a skill
+> A 08 (`/harnesses`) não existe na v1: o runner é definido no onboarding e aparece nas telas 02/03 só como status.
 
-Arquivos em `~/.revai`: `settings.json · harnesses.json · repos/<host>/<org>/<repo> · reviews/index.json · reviews/<id>/{record.json, review.json, meta.json, review.patch, review.html}`.
+## ⌨️ Atalhos
 
-- **Schema V2** (`references/schema.md` da skill): severidades `critical|major|minor|trivial`, categorias `security|performance|stability|data-integrity`, status `open|resolved`; `proposedFix = {language, before[], after[]}`. (O campo `effort` do schema continua nos dados — a skill o exige — mas a UI não o exibe.)
-- **Quality Gate** — espelho fiel de `computeGate()`: **fail só se houver `critical` aberto**; `security` entra como hotspot; blocker pulado → passa com aviso.
-- **Nada é escrito até validar** — a plataforma herda essa regra do `generate-review.mjs`.
-- **Commits só com o seu clique** — os fixes ficam unstaged no clone; "Criar branch e fazer push" é uma ação explícita (`revai/fix-<slug>`, via credential helper do sistema).
+| Tecla | Onde | Ação |
+|-------|------|------|
+| `Ctrl K` / `⌘K` | global | Command palette (ações, reviews recentes, colar URL) |
+| `N` · `T` · `Esc` | global | Nova review · alternar tema · fechar palette |
+| `Ctrl ↵` | 03 | Iniciar review |
+| `J` / `K` | 05 | Finding próximo / anterior |
+| `S` / `C` | 05 | Pular/restaurar · copiar prompt |
+| `F` | 05 | Mandar o finding para o fix loop |
 
-## 🔌 Runner (harness) — como é invocado
+## 📦 Dados e privacidade
 
-O review roda com o **runner padrão** definido no onboarding; na tela 03 ele aparece só como status ("executa este review"). A invocação é CLI headless com prompt via stdin:
+```
+~/.revai/
+├─ settings.json · harnesses.json
+├─ repos/<host>/<org>/<repo>          # clones em cache — limpe em Settings
+└─ reviews/<id>/                       # record.json · review.json · meta.json · review.patch · review.html
+```
 
-| Harness | Invocação padrão (review) | Nota |
-|---------|---------------------------|------|
-| Kiro CLI | `kiro-cli exec` + stdin | o agente aplica em sandbox do clone |
-| Claude Code | `claude -p --allowedTools "Write,Read,Glob,Grep" --disallowedTools Bash` + stdin | prompt via stdin |
-| Codex | `codex exec --sandbox workspace-write` + stdin | |
-| OpenCode | `opencode run` + stdin | |
-| Copilot CLI | `copilot -p` + stdin | experimental |
-
-Prompt grande **sempre vai via stdin** (evita limite de linha de comando no Windows). Para flags próprias, edite `customArgs` em `~/.revai/harnesses.json` (tokens: `{exe} {prompt} {model}`). Na revisão o agente só lê código e escreve em `.revai/` do clone descartável; no fix ele pode editar fontes (nunca tocar `.git/`).## 🔒 Privacidade
-
-- Sem telemetria; nada sai da sua máquina.
-- Diff/regras só circulam entre o clone sandbox, a skill e o seu harness local.
-- O clone vivo é o `~/.revai/repos/<host>/<org>/<repo>` — **limpável a qualquer momento** em Ajustes.
+- Nada sai da sua máquina: o diff e as regras circulam só entre o clone sandbox, a skill e o seu harness.
+- Nada é escrito até o schema V2 validar — herança direta do `generate-review.mjs`.
+- Commits só com o seu clique: fixes ficam unstaged; "criar branch e push" é uma ação explícita.
 
 ## 🗂️ Estrutura
 
 ```
-.                       (raiz do projeto)
-├─ src/shared/        contrato: types.ts · gate.ts (espelho computeGate) · urls.ts (parser de origem)
-├─ src/server/        hono + @hono/node-server
+src/
+├─ shared/            contrato: types.ts · gate.ts (computeGate) · urls.ts (parser de origem)
+├─ server/            hono + @hono/node-server
 │  ├─ pipeline.ts     orquestração do review (SSE)
 │  ├─ fixloop.ts      fila de fixes (apply → testes → gate delta)
-│  ├─ git.ts          plumbing: clone, checkout, base, numstat, push, reset
-│  ├─ skill.ts        ponte revai.mjs / generate-review.mjs
-│  ├─ harnesses.ts    descoberta + validação + templates de invocação
-│  └─ routes.ts · store.ts · paths.ts · proc.ts · picker.ts · errors.ts
-└─ src/app/           react 19 + vite (styles.css = porta do prototype)
+│  ├─ git.ts          plumbing: clone, checkout, numstat, push, reset
+│  └─ harnesses.ts    descoberta, validação e templates de invocação
+└─ app/               react 19 + vite (styles.css = porta do prototype)
    ├─ screens/        Onboarding · NewReview · Configure · Running · Report · Fix · History · Settings · States
    └─ ui.tsx          badges, stepper, terminal, code-diff, toasts, gate panel
 ```
 
-## 🧭 Roadmap
+## 🛣️ Roadmap
 
-- [ ] Handshake **ACP** completo (checklist por-item com sessão read-only, como desenhado no protótipo)
-- [ ] Redação de segredos antes do patch sair do clone (contrato `pipeline/safety.py` do legacy)
-- [ ] Edição de templates de harness pela UI (08)
-- [ ] Comparação de reviews (`GET /reviews/compare`) do legacy
-- [ ] Multi-reviews agendadas + insights agregados
+- [ ] Handshake ACP completo (checklist por item, sessão read-only)
+- [ ] Redação de segredos antes do patch sair do clone
+- [ ] Edição de templates de harness pela UI (telas 08)
+- [ ] Comparação de reviews e multi-reviews agendadas
+- [ ] Insights agregados entre repos
 
 ---
 
-Feito em cima da narrativa do [`prototype/index.html`](./prototype/index.html) e dos contratos testados do `legacy/`. O design tokens continuam sendo "Hard Hat": zinc + amarelo `#facc15` usado **apenas** na ação primária, no foco e na marca.
+Feito sobre a skill [`skill-version/revai`](./skill-version/revai) e a narrativa do [`prototype/index.html`](./prototype/index.html). Design **"Hard Hat"**: zinc + amarelo `#facc15`, reservado à ação primária, ao foco e à marca.
