@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Operating instructions for AI coding agents in **revai-platform** — the local web host of the `revai` code-review skill (resolve → clone → diff → review → report). Product overview lives in `README.md`; `package.json` is the authoritative source for scripts. This file covers only what agents cannot infer from the code.
+Operating instructions for AI coding agents in **revai-platform**.
 
 ## Skills (do this first)
 
@@ -10,7 +10,7 @@ Reusable agent skills live in `.agents/skills/<skill-name>/SKILL.md`. When a req
 
 Skill conventions (Agent Skills spec): folder name equals the `name` field (kebab-case); `description` states what the skill does and when it triggers; body in imperative voice, aiming for < 500 lines; optional `references/` (docs loaded on demand) and `scripts/` (executed, not read).
 
-`CLAUDE.md` is a compatibility bridge containing only `@AGENTS.md` — it holds no independent rules. Do not copy content into tool-specific files; this root file is the single source of truth.
+`CLAUDE.md` is a compatibility bridge containing only `@AGENTS.md`.
 
 ## Commands
 
