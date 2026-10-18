@@ -9,6 +9,40 @@ with a repo-local tens-based patch ladder — rules in
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-18
+
+### Added
+
+- full-folder review — local folders without a git repository are no longer an
+  error: the review covers the entire folder (scope manifest instead of a patch,
+  no base comparison) with an amber warning on New review/Configure;
+  `refKind: 'folder-full'` in the schema
+- empty diff vs base degrades to the same full-folder review instead of failing
+  with `repo/empty-diff`; the condition is detected in `prepare` and surfaced as an
+  early warning on Configure
+- the revai skill is vendored at `resources/revai-skill/` (tracked in git, shipped
+  in the desktop packages via `asarUnpack`) and resolves in order: `REVAI_SKILL_DIR`
+  → vendored → legacy `skill-version/`; without the skill the pipeline still
+  completes with a built-in `git diff` fallback + in-platform schema validation
+- Runner tab in Settings — pick the default harness and its model (seeded GLM 5.3
+  options for OpenCode, free-text `provider/id` for anything else, immediate
+  persistence in `~/.revai/harnesses.json`); the model now actually reaches the
+  review (Configure → Running → harness argv) and validation runs with the saved
+  model
+
+### Fixed
+
+- theme toggle now switches every time (reactive theme store — the render-time DOM
+  read kept a stale value, so the second click recomputed the same theme)
+- `Ctrl/⌘+G` navigates to Reviews (the sidebar advertised a `G` shortcut that had
+  no handler)
+- the base select sits below branch (head) on Configure, full width — no more
+  horizontal overflow of the card
+- kiro harness template uses `kiro-cli chat --no-interactive` (kiro-cli 2.x has no
+  `exec` subcommand); opencode/codex model flags follow their subcommands
+- `npm run test` works again — vitest runs from the repo root (the SPA root
+  `src/app` hid every test), with tests for `slugify` and the full-folder walk
+
 ## [1.1.60] - 2026-10-17
 
 ### Added
@@ -88,7 +122,8 @@ with a repo-local tens-based patch ladder — rules in
 
 - Project translated to en-us (docs, UI strings and startup banner)
 
-[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.60...HEAD
+[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.60...v1.2.0
 [1.1.60]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.40...v1.1.60
 [1.1.40]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.30...v1.1.40
 [1.1.30]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.20...v1.1.30

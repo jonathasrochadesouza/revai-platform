@@ -1,6 +1,6 @@
 {
   "name": "revai-platform",
-  "version": "1.1.60",
+  "version": "1.2.0",
   "private": true,
   "author": "revai",
   "type": "module",
