@@ -11,8 +11,10 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+    // '^/api/' (regex) — a plain '/api' prefix would also match the module '/api.ts'
+    // and swallow it on the way to the backend (blank page in `npm run dev`)
     proxy: {
-      '/api': { target: `http://127.0.0.1:${serverPort}`, ws: false },
+      '^/api/': { target: `http://127.0.0.1:${serverPort}`, ws: false },
     },
   },
 })
