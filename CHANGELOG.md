@@ -9,6 +9,27 @@ with a repo-local tens-based patch ladder — rules in
 
 ## [Unreleased]
 
+## [1.1.60] - 2026-10-17
+
+### Added
+
+- media skill (`.agents/skills/media`) — the reusable recipe to capture honest screen
+  media of the running app: a disposable `REVAI_HOME` seeded with demo reviews, a demo
+  git repo for the Configure screen, Playwright-driven flows and `scripts/make-gif.mjs`
+  (PNG frames → animated GIF, pure JS, no ffmpeg) with `scripts/seed-demo-reviews.mjs`
+
+### Changed
+
+- docs: README gains the "Screen flows" gallery — five real-flow GIFs (new review,
+  configure, report triage, ⌘K palette, theme toggle) and the full prints set in
+  `docs/media/` (01–09, every screen)
+
+### Fixed
+
+- dev: the Vite proxy key `'/api'` also matched the module `/api.ts` and swallowed it
+  into the backend (blank page on `npm run dev`); a `'^/api/'` regex proxy keeps the
+  module local while the real API keeps being proxied
+
 ## [1.1.40] - 2026-10-15
 
 ### Changed
@@ -67,7 +88,8 @@ with a repo-local tens-based patch ladder — rules in
 
 - Project translated to en-us (docs, UI strings and startup banner)
 
-[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.40...HEAD
+[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.60...HEAD
+[1.1.60]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.40...v1.1.60
 [1.1.40]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.30...v1.1.40
 [1.1.30]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.20...v1.1.30
 [1.1.20]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.0...v1.1.20

@@ -112,6 +112,31 @@ Environment variables:
 
 > Screen 08 (`/harnesses`) does not exist in v1: the runner is set during onboarding and appears in screens 02/03 only as status.
 
+## 🎬 Screen flows
+
+Real captures of the running app (seeded demo data, disposable data dir) — full prints in [`docs/media/`](docs/media).
+
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/media/flow-new-review.gif" alt="New review flow: paste a URL, resolve, continue"><br><sub><b>02 · New review</b> — paste any source (branch, PR, MR, commit or local folder) and resolve it</sub></td>
+    <td width="50%" align="center"><img src="docs/media/flow-configure.gif" alt="Configure flow: branch, scope, rules and runner"><br><sub><b>03 · Configure</b> — branch/base, changed files, rules detected and time estimate</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/media/flow-report-triage.gif" alt="Report triage: navigate findings, skip a blocker, restore"><br><sub><b>05 · Report</b> — triage with <code>J/K/S/C/F</code>: skip a blocker, see the Gate warn, restore</sub></td>
+    <td width="50%" align="center"><img src="docs/media/flow-command-palette.gif" alt="Command palette: ⌘K, search, esc"><br><sub><b>⌘K palette</b> — actions and recent reviews; <code>T</code> toggles the theme on the way back</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/media/flow-theme.gif" alt="Theme toggle: dark to light to dark"><br><sub><b>Theme</b> — dark ↔ light, persisted per machine</sub></td>
+    <td width="50%" align="center"><a href="docs/media/06-fix-loop-done.png"><img src="docs/media/06-fix-loop-done.png" alt="Fix loop: Quality Gate delta" width="440"></a><br><sub><b>06 · Fix loop</b> — apply → tests → Gate delta (print)</sub></td>
+  </tr>
+</table>
+
+| Print | Print | Print |
+|---|---|---|
+| [01 · History](docs/media/01-history.png) | [04 · Running](docs/media/04-running.png) | [07 · Settings](docs/media/07-settings.png) |
+| [02 · New review](docs/media/02-new-review.png) | [05 · Report](docs/media/05-report.png) | [08 · Onboarding](docs/media/08-onboarding.png) |
+| [03 · Configure](docs/media/03-configure.png) | [06 · Fix loop](docs/media/06-fix-loop.png) | [09 · States](docs/media/09-states.png) |
+
 ## ⌨️ Shortcuts
 
 | Key | Where | Action |
