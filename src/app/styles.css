@@ -101,6 +101,9 @@ kbd { font: 500 11px var(--mono); color: var(--fg-3); border: 1px solid var(--li
 .row { display: flex; align-items: center; gap: 12px; }
 .col { display: flex; flex-direction: column; gap: 12px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+/* stacked field selects (branch/base) — full width, never overflowing the card */
+.fields-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.fields-col select.select { width: 100%; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .muted { color: var(--fg-2); } .faint { color: var(--fg-3); }
 .small { font-size: 12.5px; }

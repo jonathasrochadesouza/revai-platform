@@ -8,7 +8,7 @@ import { saveSource } from '../flow'
 
 type ResolveResponse = {
   parsed: ParsedSource
-  info: { accessible: boolean; message: string; defaultBranch?: string; headHint?: { label: string; ref: string } }
+  info: { accessible: boolean; message: string; defaultBranch?: string; headHint?: { label: string; ref: string }; warning?: string }
 }
 
 const FORMATS = [
@@ -143,6 +143,12 @@ export default function NewReview() {
             </div>
             <span className="badge ok"><span className="dot ok" />Accessible</span>
           </div>
+          {res.info.warning && (
+            <div className="callout warn" style={{ margin: 0 }}>
+              <Icon name="alert" />
+              <span className="small">{res.info.warning}</span>
+            </div>
+          )}
           <div className="row small muted">
             {res.info.headHint
               ? <><Icon name="branch" /> <span><b className="mono">{res.info.headHint.label}</b> → base <b className="mono">{res.info.defaultBranch ?? 'auto'}</b></span></>

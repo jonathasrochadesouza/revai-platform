@@ -13,6 +13,8 @@ export interface ResolveResult {
   message: string
   defaultBranch?: string
   headHint?: { label: string; ref: string }
+  /** present when the review mode degrades (e.g. full-folder review of a non-git directory) */
+  warning?: string
 }
 
 const exists = (p: string) => fs.existsSync(p)
@@ -25,7 +27,17 @@ export async function resolveSource(input: string): Promise<{ parsed: ParsedSour
   const parsed = parseSource(input)
   if (parsed.kind === 'folder') {
     if (!exists(parsed.repo)) throw new AppError('source/unrecognized', 'Folder does not exist', parsed.repo)
-    if (!(await g.isGitDir(parsed.repo))) throw new AppError('repo/not-git', 'The folder does not contain a git repository')
+    if (!(await g.isGitDir(parsed.repo))) {
+      // not an error anymore: the review degrades to a full-folder review (no base/diff comparison)
+      return {
+        parsed,
+        info: {
+          accessible: true,
+          message: 'Full-folder review — the folder is not a git repository',
+          warning: 'Not a git repository — the review will cover the entire folder, without comparing changes against a base.',
+        },
+      }
+    }
     const branch = await g.currentBranch(parsed.repo)
     return {
       parsed,
@@ -162,6 +174,84 @@ async function checkoutHead(
   return { headBranch: local, refKind: 'sha' }
 }
 
+// ── full-folder review (no git) ──────────────────────────────────────────────
+// Folders without a git repository are reviewed as a whole: every file is in
+// scope, there is no base/diff comparison. Directory walk with sensible
+// excludes (dependencies, build output, binaries, lockfiles) and a hard cap.
+
+const FULL_EXCLUDE_DIRS = new Set([
+  'node_modules', '.git', 'dist', 'build', 'out', 'target', 'vendor', 'coverage',
+  '__pycache__', '.next', '.nuxt', '.venv', 'venv', '.gradle', 'bin', 'obj',
+  '.idea', '.vscode', '.revai', 'release', '.vite',
+])
+const FULL_BINARY_EXT = new Set([
+  'png', 'jpg', 'jpeg', 'gif', 'webp', 'ico', 'icns', 'pdf', 'zip', 'gz', 'tar', 'jar',
+  'exe', 'dll', 'so', 'dylib', 'woff', 'woff2', 'ttf', 'eot', 'otf',
+  'mp3', 'mp4', 'mov', 'avi', 'mkv', 'wav', 'db', 'sqlite', 'class', 'pyc',
+])
+export const MAX_FULL_FILES = 400
+
+export function walkFullFolder(repoDir: string): FileStat[] {
+  const files: FileStat[] = []
+  const walk = (d: string) => {
+    if (files.length >= MAX_FULL_FILES) return
+    let entries: fs.Dirent[]
+    try { entries = fs.readdirSync(d, { withFileTypes: true }) } catch { return }
+    for (const e of entries) {
+      if (files.length >= MAX_FULL_FILES) break
+      if (e.name.startsWith('.')) continue
+      const p = path.join(d, e.name)
+      if (e.isDirectory()) {
+        if (FULL_EXCLUDE_DIRS.has(e.name)) continue
+        walk(p)
+      } else {
+        const ext = (e.name.split('.').pop() ?? '').toLowerCase()
+        if (FULL_BINARY_EXT.has(ext)) continue
+        try {
+          const added = fs.readFileSync(p, 'utf8').split('\n').length
+          files.push({ path: path.relative(repoDir, p).split(path.sep).join('/'), added, removed: 0, ignored: g.isLockfile(e.name) })
+        } catch { /* unreadable/binary — skip */ }
+      }
+    }
+  }
+  walk(repoDir)
+  return files
+}
+
+/** full-folder Prepared — no base, no diff, head = folder name */
+function prepareFullFolder(repoDir: string, onLine: (l: string) => void): Prepared {
+  onLine(`Local folder (no git) — full review: ${repoDir}`)
+  const files = walkFullFolder(repoDir)
+  const label = path.basename(repoDir)
+  const totalLines = files.reduce((s, f) => s + (f.ignored ? 0 : f.added), 0)
+  const rulesLines = exists(path.join(repoDir, '.revai', 'rules.md'))
+    ? (() => { try { return fs.readFileSync(path.join(repoDir, '.revai', 'rules.md'), 'utf8').split('\n').length } catch { return 0 } })()
+    : 0
+  return {
+    repoDir,
+    label,
+    head: label,
+    headBranch: label,
+    refKind: 'folder-full',
+    base: '',
+    baseSuggestions: [],
+    branches: [],
+    files,
+    filesChanged: files.filter((f) => !f.ignored).length,
+    // folder-full convention: "added" carries the file line count (size), removed stays 0
+    additions: totalLines,
+    deletions: 0,
+    rules: {
+      rulesMd: rulesLines > 0,
+      rulesLines,
+      contributing: exists(path.join(repoDir, 'CONTRIBUTING.md')),
+      codingStandards: exists(path.join(repoDir, 'CODING_STANDARDS.md')) || exists(path.join(repoDir, 'coding-standards.md')),
+    },
+    languages: detectLanguages(files),
+    estimateMs: 30_000 + files.length * 4_500 + totalLines * 40,
+  }
+}
+
 export async function prepare(parsed: ParsedSource, onLine: (l: string) => void): Promise<Prepared> {
   let repoDir = ''
   let headLabel = ''
@@ -173,7 +263,7 @@ export async function prepare(parsed: ParsedSource, onLine: (l: string) => void)
 
   if (parsed.kind === 'folder') {
     repoDir = parsed.repo
-    if (!(await g.isGitDir(repoDir))) throw new AppError('repo/not-git', 'The folder does not contain a git repository', repoDir)
+    if (!(await g.isGitDir(repoDir))) return prepareFullFolder(repoDir, onLine)
     headBranch = (await g.currentBranch(repoDir)) ?? 'HEAD'
     headLabel = headBranch
     refKind = 'working-tree'
@@ -198,6 +288,9 @@ export async function prepare(parsed: ParsedSource, onLine: (l: string) => void)
   const files = stat.files
   const additions = stat.additions
   const deletions = stat.deletions
+  const warning = files.some((f) => !f.ignored)
+    ? undefined
+    : 'No changes between base and head — the review will cover the entire folder (full-folder mode) instead.'
 
   if (refKind !== 'working-tree') {
     const cr = await g.git(['rev-list', '--count', `${base}..${headBranch}`], repoDir)
@@ -233,6 +326,7 @@ export async function prepare(parsed: ParsedSource, onLine: (l: string) => void)
     },
     languages: detectLanguages(files),
     estimateMs: 30_000 + files.length * 4_500 + additions * 150,
+    warning,
     commits,
     lastCommitAuthor,
   }

@@ -158,15 +158,22 @@ export default function Report() {
           </div>
           <div className="card pad col small">
             <b>Where the data lives</b>
-            <span className="mono faint small">{record.id}/review.patch</span>
-            <span className="mono faint small">{record.id}/review.json</span>
+            {record.artifacts.patch && <span className="mono faint small">{record.id}/review.patch</span>}
+            {record.artifacts.reviewJson && <span className="mono faint small">{record.id}/review.json</span>}
+            {!record.artifacts.patch && !record.artifacts.reviewJson && (
+              <span className="mono faint small">{record.id}/ — no binary artifacts (full-folder review)</span>
+            )}
             <div className="col" style={{ marginTop: 6, gap: 8, alignItems: 'flex-start' }}>
-              <a className="btn sm" href={`/api/reviews/${record.id}/artifacts/patch`} download>
-                <Icon name="download" /> Download patch
-              </a>
-              <button className="btn sm ghost" onClick={async () => { await post(`/reviews/${record.id}/open-report`); toast('Skill HTML opened in the browser', 'ok') }}>
-                <Icon name="external" /> View skill HTML
-              </button>
+              {record.artifacts.patch && (
+                <a className="btn sm" href={`/api/reviews/${record.id}/artifacts/patch`} download>
+                  <Icon name="download" /> Download patch
+                </a>
+              )}
+              {record.artifacts.html && (
+                <button className="btn sm ghost" onClick={async () => { await post(`/reviews/${record.id}/open-report`); toast('Skill HTML opened in the browser', 'ok') }}>
+                  <Icon name="external" /> View skill HTML
+                </button>
+              )}
             </div>
           </div>
         </aside>

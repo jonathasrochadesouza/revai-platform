@@ -34,6 +34,7 @@ export const ERRORS: Record<string, ErrorCatalogEntry> = {
   'repo/not-git': {
     title: 'The folder is not a git repository',
     message: 'The given path does not contain a git repository',
+    hint: 'Local folders without git are supported — the review runs in full-folder mode (no base comparison)',
   },
   'repo/empty-diff': {
     title: 'Empty diff',

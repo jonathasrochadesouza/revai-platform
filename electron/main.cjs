@@ -88,6 +88,12 @@ if (!gotLock) {
     process.env.REVAI_APP_ROOT = app.getAppPath()
     process.env.REVAI_DIST = path.join(app.getAppPath(), 'dist', 'app')
     process.env.REVAI_PORT = String(port)
+    // the vendored skill is unpacked next to app.asar — child node processes cannot spawn from inside the asar
+    process.env.REVAI_SKILL_DIR = path.join(
+      String(app.getAppPath()).replace('app.asar', 'app.asar.unpacked'),
+      'resources',
+      'revai-skill',
+    )
     // bundles are pure JS (hono/react with no native deps) — loads straight from asar;
     // a bind/port failure becomes a clear dialog, not a raw main-process crash stack
     try {

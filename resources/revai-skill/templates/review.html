@@ -1,0 +1,2404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REVAI · Code Review</title>
+    <style>
+        /* ══════════════════════════════════════════════════════════════════
+           Design system: Carrot UI (CodeRabbit) — design.coderabbit.ai
+           Tokens extracted from the official stylesheet; components recreated
+           per the docs specs (PageLayout, Sidebar, Review Comment,
+           Alert, Card, Badge, Button, Filter, Status Dot, Code Block, Toast).
+           ══════════════════════════════════════════════════════════════════ */
+        :root, [data-theme="light"] {
+            --color-cui-mauve-1: oklch(99.4% .002 305);
+            --color-cui-mauve-2: oklch(98.2% .0035 305);
+            --color-cui-mauve-3: oklch(95.6% .0056 305);
+            --color-cui-mauve-4: oklch(93.1% .0084 305);
+            --color-cui-mauve-5: oklch(91% .0098 305);
+            --color-cui-mauve-6: oklch(88.5% .0112 305);
+            --color-cui-mauve-7: oklch(85.1% .0126 305);
+            --color-cui-mauve-8: oklch(79.1% .014 305);
+            --color-cui-mauve-9: oklch(55% .0154 305);
+            --color-cui-mauve-10: oklch(50% .0161 305);
+            --color-cui-mauve-11: oklch(44% .0154 305);
+            --color-cui-mauve-12: oklch(24.3% .0098 305);
+
+            --color-cui-cr-orange-1: #fefcfb;
+            --color-cui-cr-orange-2: #fff7ed;
+            --color-cui-cr-orange-3: #ffead5;
+            --color-cui-cr-orange-4: #ffdcc3;
+            --color-cui-cr-orange-9: #ff570a;
+            --color-cui-cr-orange-10: #ef4f00;
+            --color-cui-cr-orange-11: #a03e00;
+            --color-cui-cr-orange-12: #582d1d;
+
+            --color-cui-red-3: #feeaed;
+            --color-cui-red-9: #e54666;
+            --color-cui-red-10: #dc3b5d;
+            --color-cui-red-11: #ca244d;
+
+            --color-cui-amber-3: #fff7c2;
+            --color-cui-amber-9: #ffc53d;
+            --color-cui-amber-11: #ab6400;
+
+            --color-cui-secondary-3: oklch(95% .035 163);
+            --color-cui-secondary-9: oklch(81.5% .155 163);
+            --color-cui-secondary-11: oklch(55% .13 163);
+            --color-cui-secondary-12: oklch(28% .06 163);
+
+            --color-cui-cobalt-3: oklch(95% .028 260);
+            --color-cui-cobalt-9: oklch(42.84% .172 259.7);
+            --color-cui-cobalt-11: oklch(36% .145 260);
+
+            --color-cui-tertiary-3: oklch(95.5% .035 272);
+            --color-cui-tertiary-9: oklch(63.8% .177 272);
+            --color-cui-tertiary-11: oklch(50% .18 272);
+
+            --background-color-cui-base-0: var(--color-cui-mauve-4);
+            --background-color-cui-base-1: var(--color-cui-mauve-2);
+            --background-color-cui-base-2: var(--color-cui-mauve-1);
+            --background-color-cui-tint-mauve: oklch(.243 .0098 305 / .1);
+            --background-color-cui-subtle: var(--background-color-cui-tint-mauve);
+            --background-color-cui-inverse: oklch(28% .005 55);
+            --background-color-cui-accent: var(--color-cui-cr-orange-9);
+            --background-color-cui-accent-subtle: var(--color-cui-cr-orange-3);
+            --background-color-cui-accent-strong: var(--color-cui-cr-orange-10);
+            --background-color-cui-danger-subtle: var(--color-cui-red-3);
+            --background-color-cui-warn-subtle: var(--color-cui-amber-3);
+            --background-color-cui-success-subtle: var(--color-cui-secondary-3);
+            --background-color-cui-cobalt-subtle: var(--color-cui-cobalt-3);
+
+            --text-color-cui-primary: var(--color-cui-mauve-12);
+            --text-color-cui-secondary: var(--color-cui-mauve-11);
+            --text-color-cui-tertiary: var(--color-cui-mauve-9);
+            --text-color-cui-inverse: var(--color-cui-mauve-1);
+            --text-color-cui-accent: var(--color-cui-cr-orange-11);
+            --text-color-cui-accent-on: oklch(99% 0 0);
+            --text-color-cui-danger: var(--color-cui-red-11);
+            --text-color-cui-warn: #ad4c00;
+            --text-color-cui-success: var(--color-cui-secondary-11);
+            --text-color-cui-cobalt: var(--color-cui-cobalt-11);
+
+            --border-color-cui-neutral: var(--color-cui-mauve-5);
+            --border-color-cui-neutral-strong: var(--color-cui-mauve-7);
+            --ring-color-cui-focus: var(--color-cui-cr-orange-9);
+
+            --font-cui-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            --font-cui-mono: "Hack", ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+            --font-weight-normal: 400;
+            --font-weight-medium: 500;
+            --font-weight-semibold: 600;
+            --font-weight-bold: 700;
+            --text-cui-sm: .75rem;
+            --text-cui-sm--line-height: 1rem;
+            --text-cui-base: .875rem;
+            --text-cui-base--line-height: 1.25rem;
+            --text-cui-lg: 1.125rem;
+            --text-cui-lg--line-height: 1.75rem;
+            --text-cui-xl: 1.5rem;
+            --text-cui-xl--line-height: 2rem;
+            --tracking-tight: -.025em;
+
+            --radius: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
+            --radius-xl: 12px;
+            --ease-cui-out-expo: cubic-bezier(.19, 1, .22, 1);
+            --cui-button-highlight-alpha: .4;
+            --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, .05);
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, .1), 0 1px 2px -1px rgba(0, 0, 0, .1);
+
+            --font-size: 16px;
+        }
+
+        [data-theme="dark"] {
+            --color-cui-mauve-1: oklch(17.7% .0084 305);
+            --color-cui-mauve-2: oklch(21.3% .0098 305);
+            --color-cui-mauve-3: oklch(25.2% .0112 305);
+            --color-cui-mauve-4: oklch(28.4% .0126 305);
+            --color-cui-mauve-5: oklch(31.2% .014 305);
+            --color-cui-mauve-6: oklch(34.8% .0154 305);
+            --color-cui-mauve-7: oklch(40.1% .0161 305);
+            --color-cui-mauve-8: oklch(48.9% .0168 305);
+            --color-cui-mauve-9: oklch(58.5% .0161 305);
+            --color-cui-mauve-10: oklch(64% .0154 305);
+            --color-cui-mauve-11: oklch(76.7% .0105 305);
+            --color-cui-mauve-12: oklch(94.9% .0035 305);
+
+            --color-cui-red-3: #3a141e;
+            --color-cui-red-11: #ff949d;
+            --color-cui-amber-3: #302008;
+            --color-cui-amber-11: #ffca16;
+            --color-cui-secondary-3: oklch(24% .045 163);
+            --color-cui-secondary-12: oklch(95% .04 163);
+            --color-cui-cobalt-3: oklch(24% .045 260);
+            --color-cui-cobalt-11: oklch(78% .13 260);
+            --color-cui-tertiary-3: oklch(24% .05 272);
+            --color-cui-tertiary-11: oklch(78% .155 272);
+            --color-cui-cr-orange-3: #331e0b;
+            --color-cui-cr-orange-11: #ffa057;
+            --color-cui-cr-orange-12: #ffe0c2;
+
+            --background-color-cui-tint-mauve: oklch(.949 .0035 305 / .06);
+            --background-color-cui-inverse: oklch(90% .005 55);
+            --text-color-cui-warn: var(--color-cui-amber-11);
+            --cui-button-highlight-alpha: .12;
+            --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, .2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: var(--font-size);
+        }
+
+        body {
+            font-family: var(--font-cui-sans);
+            background: var(--background-color-cui-base-1);
+            color: var(--text-color-cui-primary);
+            font-size: var(--text-cui-base);
+            line-height: var(--text-cui-base--line-height);
+            font-weight: var(--font-weight-normal);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--background-color-cui-inverse);
+            color: var(--text-color-cui-inverse);
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--ring-color-cui-focus);
+        }
+
+        input:focus-visible {
+            outline: none;
+        }
+
+        .cui-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: color-mix(in srgb, var(--text-color-cui-tertiary) 45%, transparent) transparent;
+        }
+
+        .cui-scrollbar:hover {
+            scrollbar-color: color-mix(in srgb, var(--text-color-cui-tertiary) 70%, transparent) transparent;
+        }
+
+        code {
+            font-family: var(--font-cui-mono);
+            font-size: .8125rem;
+            padding: .125rem .3125rem;
+            border-radius: .25rem;
+            background: var(--background-color-cui-tint-mauve);
+            color: var(--text-color-cui-primary);
+        }
+
+        /* ════════════════ PageLayout ════════════════════════════════════ */
+        .page-layout {
+            display: grid;
+            grid-template-columns: 256px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .pl-sidebar {
+            background: var(--background-color-cui-base-0);
+            border-right: 1px solid var(--border-color-cui-neutral);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .sb-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 2rem;
+            padding: 0 8px;
+            border-radius: var(--radius);
+            min-width: 0;
+        }
+
+        .sb-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: var(--radius-md);
+            background: var(--background-color-cui-base-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .brand-logo {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            border-radius: inherit;
+            border: 1px solid var(--border-color-cui-neutral);
+        }
+
+        .sb-name {
+            font-size: var(--text-cui-sm);
+            font-weight: var(--font-weight-medium);
+            color: var(--text-color-cui-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sb-plan {
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .sb-separator {
+            height: 1px;
+            background: var(--border-color-cui-neutral);
+            margin: 2px 4px;
+        }
+
+        .sb-section {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .sb-label {
+            font-size: .6875rem;
+            font-weight: var(--font-weight-medium);
+            color: var(--text-color-cui-tertiary);
+            padding: 4px 8px 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sb-label svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .sb-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 2rem;
+            padding: 0 8px;
+            border-radius: var(--radius);
+            font-size: var(--text-cui-sm);
+            color: var(--text-color-cui-secondary);
+            min-width: 0;
+        }
+
+        .sb-row svg {
+            width: 14px;
+            height: 14px;
+            color: var(--text-color-cui-tertiary);
+            flex-shrink: 0;
+        }
+
+        .sb-row-label {
+            flex-shrink: 0;
+        }
+
+        .sb-row-value {
+            margin-left: auto;
+            color: var(--text-color-cui-primary);
+            font-weight: var(--font-weight-medium);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: right;
+        }
+
+        .sb-row.mono .sb-row-value {
+            font-family: var(--font-cui-mono);
+            font-size: .7rem;
+            font-weight: var(--font-weight-normal);
+        }
+
+        .sb-footer {
+            margin-top: auto;
+            padding: 8px 4px 2px;
+            font-size: .6875rem;
+            color: var(--text-color-cui-tertiary);
+        }
+
+        /* ── Header / body ── */
+        .pl-main {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .pl-header {
+            min-height: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 30px;
+            border-bottom: 1px solid var(--border-color-cui-neutral);
+        }
+
+        .ph-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: var(--text-cui-sm);
+            font-weight: var(--font-weight-medium);
+            min-width: 0;
+        }
+
+        .ph-branch {
+            font-family: var(--font-cui-mono);
+            font-size: .7rem;
+            color: var(--text-color-cui-secondary);
+            background: var(--background-color-cui-tint-mauve);
+            border-radius: var(--radius);
+            padding: 2px 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .ph-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .ph-search {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 260px;
+        }
+
+        .sfb-search-icon {
+            position: absolute;
+            left: 10px;
+            width: 14px;
+            height: 14px;
+            color: var(--text-color-cui-tertiary);
+            pointer-events: none;
+        }
+
+        .ph-input {
+            width: 100%;
+            height: 2.25rem;
+            padding: 0 30px 0 32px;
+            border: 1px solid var(--border-color-cui-neutral);
+            border-radius: var(--radius-md);
+            background: var(--background-color-cui-base-2);
+            color: var(--text-color-cui-primary);
+            font-size: var(--text-cui-sm);
+            font-family: inherit;
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+        .ph-input::placeholder {
+            color: color-mix(in oklab, currentcolor 50%, transparent);
+        }
+
+        .ph-input:focus {
+            border-color: var(--ring-color-cui-focus);
+            box-shadow: 0 0 0 4px color-mix(in oklab, var(--background-color-cui-accent) 25%, transparent);
+        }
+
+        .ph-clear {
+            position: absolute;
+            right: 7px;
+            width: 18px;
+            height: 18px;
+            border: none;
+            background: transparent;
+            color: var(--text-color-cui-tertiary);
+            border-radius: 999px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ph-clear:hover {
+            color: var(--text-color-cui-primary);
+        }
+
+        .ph-clear svg {
+            width: 10px;
+            height: 10px;
+        }
+
+        .pl-body {
+            flex: 1;
+            padding: 24px 30px;
+        }
+
+        /* ════════════════ Button ════════════════════════════════════════ */
+        .cui-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 2.25rem;
+            padding: 0 12px;
+            border-radius: var(--radius-md);
+            font-size: var(--text-cui-sm);
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+            border: 1px solid var(--border-color-cui-neutral);
+            background: transparent;
+            color: var(--text-color-cui-primary);
+            transition: background .15s cubic-bezier(.4, 0, .2, 1), border-color .15s, color .15s;
+            white-space: nowrap;
+        }
+
+        .cui-btn:hover {
+            background: var(--background-color-cui-tint-mauve);
+        }
+
+        .cui-btn.btn-black {
+            background: var(--background-color-cui-inverse);
+            color: var(--text-color-cui-inverse);
+            border-color: transparent;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, calc(var(--cui-button-highlight-alpha) * .6));
+        }
+
+        .cui-btn.btn-black:hover {
+            background: color-mix(in oklab, var(--background-color-cui-inverse) 86%, var(--text-color-cui-inverse));
+        }
+
+        .cui-btn.btn-black:active {
+            transform: translateY(1px);
+        }
+
+        .cui-btn.btn-transparent {
+            border-color: transparent;
+            color: var(--text-color-cui-secondary);
+        }
+
+        .cui-btn.btn-transparent:hover {
+            color: var(--text-color-cui-primary);
+        }
+
+        .cui-btn.btn-sm {
+            height: 2rem;
+            padding: 0 10px;
+        }
+
+        .cui-btn.btn-xs {
+            height: 1.75rem;
+            padding: 0 8px;
+            font-size: .7rem;
+        }
+
+        .cui-btn:disabled {
+            opacity: .5;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+
+        .cui-btn svg {
+            width: 13px;
+            height: 13px;
+        }
+
+        .cui-btn.copied {
+            color: var(--text-color-cui-success);
+            border-color: var(--color-cui-secondary-9);
+        }
+
+        .icon-btn {
+            width: 2.25rem;
+            padding: 0;
+        }
+
+        /* ════════════════ Badge ═════════════════════════════════════════ */
+        .cui-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: var(--text-cui-sm);
+            font-weight: var(--font-weight-medium);
+            line-height: 1rem;
+            padding: 1px 6px;
+            border-radius: var(--radius);
+            white-space: nowrap;
+        }
+
+        .cui-badge.b-border {
+            background: transparent;
+            border: 1px solid currentColor;
+        }
+
+        .cui-badge .b-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: currentColor;
+            flex-shrink: 0;
+        }
+
+        .cui-badge svg {
+            width: 11px;
+            height: 11px;
+            flex-shrink: 0;
+        }
+
+        .b-neutral {
+            background: var(--background-color-cui-tint-mauve);
+            color: var(--text-color-cui-primary);
+        }
+
+        .b-accent {
+            background: var(--background-color-cui-accent-subtle);
+            color: var(--text-color-cui-warn);
+        }
+
+        .b-danger {
+            background: var(--background-color-cui-danger-subtle);
+            color: var(--text-color-cui-danger);
+        }
+
+        .b-warn {
+            background: var(--background-color-cui-warn-subtle);
+            color: var(--text-color-cui-warn);
+        }
+
+        .b-success {
+            background: var(--background-color-cui-success-subtle);
+            color: var(--text-color-cui-success);
+        }
+
+        /* ════════════════ Status Dot ════════════════════════════════════ */
+        .cui-status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            flex-shrink: 0;
+        }
+
+        .cui-status-dot.sm {
+            width: 6px;
+            height: 6px;
+        }
+
+        .sd-neutral { background: var(--color-cui-mauve-8); }
+        .sd-accent { background: var(--background-color-cui-accent); }
+        .sd-danger { background: var(--color-cui-red-9); }
+        .sd-warn { background: var(--color-cui-amber-9); }
+        .sd-success { background: var(--color-cui-secondary-9); }
+
+        /* ════════════════ Alert (gate) ══════════════════════════════════ */
+        .cui-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 16px;
+        }
+
+        .cui-alert.danger {
+            background: var(--background-color-cui-danger-subtle);
+        }
+
+        .cui-alert.success {
+            background: var(--background-color-cui-success-subtle);
+        }
+
+        .cui-alert-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #fff;
+        }
+
+        .cui-alert-icon svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .cui-alert.danger .cui-alert-icon {
+            background: var(--color-cui-red-9);
+        }
+
+        .cui-alert.success .cui-alert-icon {
+            background: var(--color-cui-secondary-9);
+            color: oklch(15% .05 163);
+        }
+
+        .cui-alert.warn {
+            background: var(--background-color-cui-warn-subtle);
+        }
+
+        .cui-alert.warn .cui-alert-icon {
+            background: var(--color-cui-amber-9);
+            color: oklch(15% 0 0);
+        }
+
+        .cui-alert-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .cui-alert-title {
+            font-size: var(--text-cui-base);
+            font-weight: var(--font-weight-semibold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .cui-alert-desc {
+            margin-top: 3px;
+            font-size: var(--text-cui-sm);
+            line-height: 1.5;
+            color: var(--text-color-cui-secondary);
+        }
+
+        .cui-alert.danger .cui-alert-desc strong {
+            color: var(--text-color-cui-danger);
+            font-weight: var(--font-weight-semibold);
+        }
+
+        .cui-alert-chips {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .cui-alert-action {
+            align-self: center;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        /* Gate mini (sidebar) — caixa auto-explicativa */
+        .gate-mini-box {
+            margin-top: 4px;
+            padding: 8px 10px;
+            border-radius: var(--radius-md);
+            background: var(--background-color-cui-danger-subtle);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .gate-mini-box.passed {
+            background: var(--background-color-cui-success-subtle);
+        }
+
+        .gate-mini-box.warn {
+            background: var(--background-color-cui-warn-subtle);
+        }
+
+        .gate-mini-box.warn .gmb-top strong {
+            color: var(--text-color-cui-warn);
+        }
+
+        .gmb-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: var(--text-cui-sm);
+            font-weight: var(--font-weight-medium);
+            color: var(--text-color-cui-primary);
+        }
+
+        .gmb-top strong {
+            margin-left: auto;
+            font-size: .68rem;
+            font-weight: var(--font-weight-bold);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .gate-mini-box.failed .gmb-top strong {
+            color: var(--text-color-cui-danger);
+        }
+
+        .gate-mini-box.passed .gmb-top strong {
+            color: var(--text-color-cui-success);
+        }
+
+        .gmb-desc {
+            font-size: .68rem;
+            line-height: 1.5;
+            color: var(--text-color-cui-secondary);
+            padding-left: 14px;
+        }
+
+        /* ════════════════ Card ══════════════════════════════════════════ */
+        .cui-card {
+            background: var(--background-color-cui-base-2);
+            border: 1px solid var(--border-color-cui-neutral);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .cui-card + .cui-card,
+        .card-group + .card-group,
+        .cui-card + .card-group,
+        .card-group + .cui-card {
+            margin-top: 12px;
+        }
+
+        .cui-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border-color-cui-neutral);
+        }
+
+        .cc-title {
+            font-size: var(--text-cui-base);
+            font-weight: var(--font-weight-semibold);
+        }
+
+        .cc-note {
+            margin-left: auto;
+            font-size: var(--text-cui-sm);
+            color: var(--text-color-cui-tertiary);
+        }
+
+        .cc-section {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color-cui-neutral);
+        }
+
+        .cc-section:last-child {
+            border-bottom: none;
+        }
+
+        .cc-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-md);
+            background: var(--background-color-cui-base-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .walkthrough {
+            font-size: var(--text-cui-base);
+            line-height: 1.625;
+            color: var(--text-color-cui-secondary);
+        }
+
+        /* ── Table (official recipe from the Review Comment body) ── */
+        .table-wrap {
+            overflow: hidden;
+            border: 1px solid var(--border-color-cui-neutral);
+            border-radius: .375rem;
+        }
+
+        .cui-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .8125rem;
+        }
+
+        .cui-table th,
+        .cui-table td {
+            border-top: 1px solid var(--border-color-cui-neutral);
+            text-align: left;
+            vertical-align: top;
+            padding: .5rem .75rem;
+        }
+
+        .cui-table tr:first-child th,
+        .cui-table tr:first-child td {
+            border-top: 0;
+        }
+
+        .cui-table th {
+            color: var(--text-color-cui-primary);
+            background: var(--background-color-cui-tint-mauve);
+            font-weight: var(--font-weight-semibold);
+            font-size: .6875rem;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            white-space: nowrap;
+        }
+
+        .cui-table td {
+            color: var(--text-color-cui-secondary);
+        }
+
+        .cui-table tbody tr:nth-child(2n) td {
+            background: var(--background-color-cui-tint-mauve);
+        }
+
+        .ft-path {
+            font-family: var(--font-cui-mono);
+            font-size: .7rem;
+            white-space: nowrap;
+            color: var(--text-color-cui-primary);
+        }
+
+        .ft-effort {
+            display: inline-flex;
+            gap: 6px;
+            align-items: center;
+            font-size: var(--text-cui-sm);
+            color: var(--text-color-cui-secondary);
+            white-space: nowrap;
+        }
+
+        .ft-effort svg {
+            width: 12px;
+            height: 12px;
+            color: var(--text-color-cui-accent);
+        }
+
+        .ft-count {
+            font-variant-numeric: tabular-nums;
+            font-weight: var(--font-weight-bold);
+            color: var(--text-color-cui-primary);
+        }
+
+        /* ════════════════ Filter (severidade) ═══════════════════════════ */
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 16px 0 12px;
+        }
+
+        .filter-label {
+            font-size: var(--text-cui-sm);
+            font-weight: var(--font-weight-medium);
+            color: var(--text-color-cui-tertiary);
+        }
+
+        .cui-filter {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 2rem;
+            padding: 0 10px;
+            border: 1px solid var(--border-color-cui-neutral);
+            border-radius: var(--radius-md);
+            background: var(--background-color-cui-base-2);
+            color: var(--text-color-cui-secondary);
+            font-size: var(--text-cui-sm);
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+            transition: border-color .15s, background .15s, color .15s;
+            white-space: nowrap;
+        }
+
+        .cui-filter:hover {
+            border-color: var(--border-color-cui-neutral-strong);
+        }
+
+        .cui-filter.active {
+            border-color: var(--color-cui-red-9);
+            background: var(--background-color-cui-danger-subtle);
+            color: var(--text-color-cui-danger);
+        }
+
+        .cui-filter.active.f-minor {
+            border-color: var(--color-cui-amber-9);
+            background: var(--background-color-cui-warn-subtle);
+            color: var(--text-color-cui-warn);
+        }
+
+        .cui-filter.active.f-trivial {
+            border-color: var(--color-cui-cobalt-9);
+            background: var(--background-color-cui-cobalt-subtle);
+            color: var(--text-color-cui-cobalt);
+        }
+
+        .fp-count {
+            font-size: .6875rem;
+            font-weight: var(--font-weight-bold);
+            color: var(--text-color-cui-tertiary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .cui-filter.active .fp-count {
+            color: inherit;
+        }
+
+        /* ════════════════ Findings head ═════════════════════════════════ */
+        .findings-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 22px 0 4px;
+            flex-wrap: wrap;
+        }
+
+        .findings-head > svg {
+            width: 15px;
+            height: 15px;
+            color: var(--text-color-cui-tertiary);
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            font-size: var(--text-cui-lg);
+            line-height: var(--text-cui-lg--line-height);
+            font-weight: var(--font-weight-semibold);
+            letter-spacing: var(--tracking-tight);
+        }
+
+        .results-total-badge {
+            font-size: var(--text-cui-sm);
+            font-weight: var(--font-weight-bold);
+            color: var(--text-color-cui-accent);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .active-chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: var(--text-cui-sm);
+            font-weight: var(--font-weight-medium);
+            padding: 2px 8px;
+            border-radius: var(--radius-md);
+            background: var(--background-color-cui-tint-mauve);
+            color: var(--text-color-cui-primary);
+            border: none;
+            cursor: pointer;
+        }
+
+        .chip svg {
+            width: 10px;
+            height: 10px;
+        }
+
+        .results-count {
+            margin-left: auto;
+            font-size: var(--text-cui-sm);
+            color: var(--text-color-cui-tertiary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ════════════════ Grupos ════════════════════════════════════════ */
+        .card-group .cui-card-header {
+            width: 100%;
+            cursor: pointer;
+            user-select: none;
+            background: transparent;
+            border: none;
+            text-align: left;
+            transition: background .15s;
+        }
+
+        .card-group .cui-card-header:hover {
+            background: var(--background-color-cui-tint-mauve);
+        }
+
+        .g-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .g-icon svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .card-group.actionable .g-icon {
+            background: var(--background-color-cui-danger-subtle);
+            color: var(--text-color-cui-danger);
+        }
+
+        .card-group.nitpicks .g-icon {
+            background: var(--background-color-cui-tint-mauve);
+            color: var(--text-color-cui-primary);
+        }
+
+        .g-title {
+            font-weight: var(--font-weight-semibold);
+            font-size: var(--text-cui-base);
+            color: var(--text-color-cui-primary);
+        }
+
+        .g-sub {
+            font-size: .7rem;
+            color: var(--text-color-cui-tertiary);
+        }
+
+        .g-chevron {
+            width: 14px;
+            height: 14px;
+            color: var(--text-color-cui-tertiary);
+            flex-shrink: 0;
+            transition: transform .2s var(--ease-cui-out-expo);
+        }
+
+        .cui-card-header [data-group-count] {
+            margin-left: auto;
+            display: inline-flex;
+            flex-shrink: 0;
+        }
+
+        .card-group:not(.open) .g-chevron {
+            transform: rotate(-90deg);
+        }
+
+        .group-body {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows .28s var(--ease-cui-out-expo);
+        }
+
+        .card-group.open .group-body {
+            grid-template-rows: 1fr;
+        }
+
+        .group-body-inner {
+            overflow: hidden;
+        }
+
+        /* ════════════════ Review Comment ════════════════════════════════ */
+        .rc-thread {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 12px 16px 16px;
+            border-top: 1px solid var(--border-color-cui-neutral);
+        }
+
+        .rc {
+            display: flex;
+            gap: 10px;
+        }
+
+        .rc-gutter {
+            flex-shrink: 0;
+            position: relative;
+            display: flex;
+        }
+
+        .rc-thread .rc:not(:last-child) .rc-gutter::after {
+            content: "";
+            position: absolute;
+            top: 36px;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            background: var(--border-color-cui-neutral-strong);
+        }
+
+        .rc-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            background: var(--background-color-cui-base-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .rc-main {
+            flex: 1;
+            min-width: 0;
+            position: relative;
+        }
+
+        .rc-main::before {
+            content: "";
+            position: absolute;
+            left: -5px;
+            top: 11px;
+            width: 10px;
+            height: 10px;
+            background: var(--background-color-cui-base-2);
+            border-left: 1px solid var(--border-color-cui-neutral);
+            border-bottom: 1px solid var(--border-color-cui-neutral);
+            transform: rotate(45deg);
+        }
+
+        .rc-card {
+            background: var(--background-color-cui-base-2);
+            border: 1px solid var(--border-color-cui-neutral);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            animation: cardIn .22s var(--ease-cui-out-expo) both;
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        .rc.resolved .rc-card {
+            opacity: .55;
+        }
+
+        .rc-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-color-cui-neutral);
+            flex-wrap: wrap;
+            min-width: 0;
+        }
+
+        .rc-author {
+            font-size: var(--text-cui-sm);
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-color-cui-primary);
+        }
+
+        .rc-meta {
+            font-size: .7rem;
+            color: var(--text-color-cui-tertiary);
+            font-family: var(--font-cui-mono);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .rc-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .rc.resolved .rc-actions {
+            padding-right: 5rem;
+        }
+
+        .rc-body {
+            padding: 10px 12px;
+            font-size: var(--text-cui-base);
+            color: var(--text-color-cui-secondary);
+        }
+
+        .rc-title {
+            font-size: var(--text-cui-base);
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-color-cui-primary);
+            margin-bottom: 3px;
+        }
+
+        .rc-why {
+            margin-top: 8px;
+            padding-left: 12px;
+            border-left: 2px solid var(--border-color-cui-neutral-strong);
+            font-size: var(--text-cui-sm);
+            color: var(--text-color-cui-secondary);
+        }
+
+        .why-label {
+            font-size: .6rem;
+            font-weight: var(--font-weight-bold);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--text-color-cui-warn);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .rc-resolved-tag {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            z-index: 1;
+        }
+
+        .rc-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 8px 12px;
+            border-top: 1px solid var(--border-color-cui-neutral);
+            flex-wrap: wrap;
+        }
+
+        /* ════════════════ Code Block (variant card) ═════════════════════ */
+        .cui-code-block {
+            background: var(--background-color-cui-base-1);
+            border: 1px solid var(--border-color-cui-neutral);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .cb-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 8px 5px 12px;
+            border-bottom: 1px solid var(--border-color-cui-neutral);
+            font-size: .7rem;
+            color: var(--text-color-cui-tertiary);
+            flex-wrap: wrap;
+        }
+
+        .cb-file-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .cb-file-info svg {
+            width: 12px;
+            height: 12px;
+            color: var(--text-color-cui-tertiary);
+            flex-shrink: 0;
+        }
+
+        .cb-filename {
+            font-family: var(--font-cui-mono);
+            font-size: .68rem;
+            font-weight: var(--font-weight-medium);
+            color: var(--text-color-cui-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cb-head .cui-btn {
+            margin-left: auto;
+        }
+
+        .cb-surface {
+            background: var(--background-color-cui-base-2);
+        }
+
+        .cb-surface pre {
+            font-family: var(--font-cui-mono);
+            font-size: .8125rem;
+            line-height: 1.55;
+            padding: .75rem;
+            margin: 0;
+            overflow-x: auto;
+            color: var(--text-color-cui-primary);
+        }
+
+        .cb-surface pre code {
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            font-size: inherit;
+        }
+
+        .cb-line {
+            display: block;
+            white-space: pre;
+            padding: 0 12px 0 8px;
+        }
+
+        .cb-sign {
+            display: inline-block;
+            width: 1rem;
+            user-select: none;
+        }
+
+        .cb-line.del {
+            background: color-mix(in oklab, var(--color-cui-red-9) 9%, transparent);
+            color: var(--text-color-cui-danger);
+        }
+
+        .cb-line.add {
+            background: color-mix(in oklab, var(--color-cui-secondary-9) 16%, transparent);
+            color: var(--text-color-cui-success);
+        }
+
+        .prose-code {
+            margin-top: 10px;
+        }
+
+        /* ════════════════ Select mobile ═════════════════════════════════ */
+        .file-select-wrap {
+            display: none;
+        }
+
+        .file-select {
+            width: 100%;
+            height: 2.25rem;
+            padding: 0 10px;
+            border: 1px solid var(--border-color-cui-neutral);
+            border-radius: var(--radius-md);
+            background: var(--background-color-cui-base-2);
+            color: var(--text-color-cui-primary);
+            font-family: inherit;
+            font-size: var(--text-cui-sm);
+        }
+
+        /* ════════════════ Empty state ═══════════════════════════════════ */
+        .empty-state {
+            text-align: center;
+            padding: 44px 16px;
+            background: var(--background-color-cui-base-2);
+            border: 1px dashed var(--border-color-cui-neutral-strong);
+            border-radius: var(--radius-lg);
+            color: var(--text-color-cui-tertiary);
+        }
+
+        .empty-state svg {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 8px;
+            opacity: .6;
+        }
+
+        .empty-title {
+            font-size: var(--text-cui-base);
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-color-cui-primary);
+            margin-bottom: 2px;
+        }
+
+        .empty-desc {
+            font-size: var(--text-cui-sm);
+        }
+
+        /* ════════════════ Footer ════════════════════════════════════════ */
+        .pl-footer {
+            border-top: 1px solid var(--border-color-cui-neutral);
+            padding: 14px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: .6875rem;
+            color: var(--text-color-cui-tertiary);
+        }
+
+        /* ════════════════ Toast (.cui-toast) ════════════════════════════ */
+        .cui-toast {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 100;
+            background: var(--background-color-cui-base-2);
+            border: 1px solid var(--border-color-cui-neutral);
+            border-radius: var(--radius-lg);
+            padding: 10px 14px;
+            box-shadow: var(--shadow-sm), 0 10px 15px -3px rgba(0, 0, 0, .1), 0 4px 6px -4px rgba(0, 0, 0, .1);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(16px);
+            pointer-events: none;
+            transition: transform .4s, opacity .4s;
+            max-width: 360px;
+        }
+
+        .cui-toast[data-visible="true"] {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .cui-toast-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-md);
+            background: var(--background-color-cui-accent-subtle);
+            color: var(--text-color-cui-warn);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .cui-toast-icon svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .cui-toast-title {
+            font-size: var(--text-cui-sm);
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-color-cui-primary);
+        }
+
+        .cui-toast-msg {
+            font-size: .7rem;
+            color: var(--text-color-cui-tertiary);
+            line-height: 1.45;
+        }
+
+        @media (prefers-reduced-motion) {
+            .cui-toast,
+            .rc-card,
+            .g-chevron,
+            .group-body {
+                transition: none !important;
+                animation: none !important;
+            }
+        }
+
+        /* ════════════════ Responsive ════════════════════════════════════ */
+        @media (max-width: 1080px) {
+            .page-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .pl-sidebar {
+                display: none;
+            }
+
+            .file-select-wrap {
+                display: block;
+                margin-bottom: 16px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .pl-body {
+                padding: 16px;
+            }
+
+            .pl-header {
+                padding: 8px 16px;
+                height: auto;
+                min-height: 2.5rem;
+                flex-wrap: wrap;
+            }
+
+            .ph-actions {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .ph-search {
+                width: 100%;
+            }
+
+            .pl-footer {
+                padding: 12px 16px;
+            }
+
+            .rc-actions {
+                width: 100%;
+                margin-left: 0;
+                padding-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script>
+        // =====================================================================
+        // REVIEW DATA — machine slot. generate-review.mjs replaces this whole
+        // REVAI_DATA token with the findings JSON array literal.
+        // =====================================================================
+        const REVIEW_DATA = /*__REVAI_DATA__*/;
+        // =====================================================================
+        // META DATA — machine slot. generate-review.mjs replaces this whole
+        // REVAI_META token with the meta JSON object literal.
+        // =====================================================================
+        const REVIEW_META = /*__REVAI_META__*/;
+
+        // =====================================================================
+        // LOGO — embedded as base64 (assets/REVAI LOGO BLACK.png) to stay self-contained
+        // =====================================================================
+        const LOGO_DEFAULT = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAMAAACahl6sAAADAFBMVEUAAAD+/v7akWb9/f3qvh0DAwPYkWfYj2Xaj2YCAQDXj2TYj2brwBzqvxvZkGTrvx7akGbilgFmSjvtvx/XjWLvvh1mSTfuvRzvvyHtvh3pvR3glgGoXUXWjmP6+vr+/v3WjWTxvyBlSjlra2vglQGgWUGkW0QIBQTVXhHYkWpoTT7ZjmPhlwPXjmZnTD3svhzpux/tvRvWkWbotBftwB8PCgkJCAZtbWzlkwIXEg+pYzgUEQjsrxTjlwQHBAPSjWcUDQvswB2nXUXZkmmhXEPxwh/pvhv8/PtNPDLQh2PqtBTUjGSkWUPfmANkSDrUimLXj2jUXRCoX0XutxrrviAYFQvjlAHvwCG9mizVjmQHAQHHimrouB2DWkLapC7xxSPOjWbXkWgfFRJiSzrYjWYbGxtgSTrtuxwODQejYEZlTDzgkgGdb1rRXRLQiWZeQDWqYkfCh2rUj2bTkWp0Tzu0fmErGhW0tLRuSzktJRNyRztINy7Rj2rLfFWjcFglGBRPT0/JelSebVDYk2qye1/w8PDrrxbYjWMmHBa0e1t3Ujx8Vj/rwCHqshTQj2+rZkq1bU/cpDC4ly7gmgNBMSuiclrgjxLalW4oKCi+nzSnXULl0L6seVvSlHJdRzueWUDDfFjVkGTNXQtpSjnMhmCJYEuDg4OSWEXLjWyKiortwh/t7e05KSKFXES+eFWtra3ntBi4dFTGoSy/hmnTaw7tsiDcjmn17eDfiRm9gWDv5NbJgVyWXkaPY0syHBjY2NhTVFSkY0jUri2xaUvAnjOKY0bKpDHNaQz7+veCVTyegi1dSjxhQzWUZklEKSTcj2mgcFBhYF+RXkm2eVWda04tLS3+/fuukSzSZgqihTD29fXoqh3Hx8fz6+PhkxjttCOxgWVxRDbPz8+KcyNSNSnLeVPewKZqamnesijbuqHXjmHTqSpSUlGqjCfLlXSRkZCndxLckGjSmHmwdxjNmnrUozPlzrzg4OB+ayR6enquZUi0gF7ejRzVqIuSfDfTqyxpWbF2AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFfmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA5LTMwPC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhXc1FrcTRGMCZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBRGZhbDk0QW5vJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0pvbmF0aGFzIFJvY2hhIGRlIHNvdXph4oCycyB0ZWFtJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD4xZGFjZWYyNi1lNDJlLTRlOWItOTI5MS1hMWFhMjZmYTljZDA8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyc+CiAgPGRjOnRpdGxlPgogICA8cmRmOkFsdD4KICAgIDxyZGY6bGkgeG1sOmxhbmc9J3gtZGVmYXVsdCc+UkVWQUkgTE9HTyAtIDI8L3JkZjpsaT4KICAgPC9yZGY6QWx0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';;
+
+        const SEVERITY = {
+            critical: { rank: 0, label: 'Critical', badge: 'danger' },
+            major: { rank: 1, label: 'Major', badge: 'accent' },
+            minor: { rank: 2, label: 'Minor', badge: 'warn' },
+            trivial: { rank: 3, label: 'Trivial', badge: 'neutral' }
+        };
+
+        const CATEGORY = {
+            security: { label: 'Security', badge: 'danger' },
+            performance: { label: 'Performance', badge: 'warn' },
+            stability: { label: 'Stability', badge: 'success' },
+            'data-integrity': { label: 'Data Integrity', badge: 'accent' }
+        };
+
+        const EFFORT = {
+            'quick-win': { label: 'Quick win' },
+            estimated: { label: 'Estimated' },
+            significant: { label: 'Significant' }
+        };
+
+        const PRIORITY_MAP = { critical: 'critical', medium: 'major', low: 'minor' };
+
+        function normalizeFinding(f) {
+            return Object.assign({}, f, {
+                severity: f.severity || PRIORITY_MAP[f.priority] || 'minor',
+                category: f.category || 'stability',
+                effort: f.effort || 'estimated',
+                status: f.status || 'open'
+            });
+        }
+
+        const findings = REVIEW_DATA
+            .map(normalizeFinding)
+            .sort((a, b) => SEVERITY[a.severity].rank - SEVERITY[b.severity].rank);
+        findings.forEach((f, i) => { f.num = i + 1; });
+
+        // =====================================================================
+        // CONFIGS — embedded config JSON (fallback); the user preference is
+        // persisted in localStorage and always wins over the default
+        // =====================================================================
+        const APP_CONFIG = { theme: 'dark' };
+
+        function loadSavedConfig() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('revai.config') || 'null');
+                if (saved && typeof saved === 'object') return saved;
+            } catch (e) {}
+            return null;
+        }
+
+        function saveConfig(patch) {
+            try {
+                const merged = Object.assign({}, APP_CONFIG, loadSavedConfig() || {}, patch);
+                localStorage.setItem('revai.config', JSON.stringify(merged));
+            } catch (e) {}
+        }
+
+        const savedConfig = loadSavedConfig() || APP_CONFIG;
+
+        let state = {
+            search: '',
+            selectedSeverity: 'all',
+            selectedFile: null,
+            isDark: savedConfig.theme === 'dark',
+            actionableOpen: true,
+            nitpicksOpen: false,
+            skippedOpen: false,
+            skipped: {}
+        };
+
+        function esc(str) {
+            return String(str).replace(/[&<>"']/g, function (m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+            });
+        }
+
+        // Icons (SVG strings)
+        const icons = {
+            zap: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+            shield: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>',
+            activity: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+            database: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>',
+            clock: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+            wrench: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
+            wand: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>',
+            target: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+            sparkles: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>',
+            search: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
+            sun: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
+            moon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
+            gitPullRequest: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" x2="6" y1="9" y2="21"/></svg>',
+            user: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+            fileDiff: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M12 12v6"/></svg>',
+            fileText: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>',
+            alertTriangle: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>',
+            shieldCheck: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>',
+            ban: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>',
+            clipboardList: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>',
+            rotateCcw: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>'
+        };
+
+        const xIconSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+        const copyIconSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+        const checkIconSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        const fileIconSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>';
+
+        // Official badge: 5 semantic variants, orthogonal border/dot
+        function Badge(label, variant, opts) {
+            opts = opts || {};
+            let cls = 'cui-badge b-' + (variant || 'neutral');
+            if (opts.border) cls += ' b-border';
+            return '<span class="' + cls + '">' +
+                (opts.dot ? '<span class="b-dot"></span>' : '') +
+                (opts.icon || '') +
+                label +
+                '</span>';
+        }
+
+        function PageHeader() {
+            return (
+                '<header class="pl-header">' +
+                    '<div class="ph-breadcrumb">' +
+                        '<span>Code Review</span>' +
+                        '<span class="ph-branch">' + esc(REVIEW_META.branch) + '</span>' +
+                    '</div>' +
+                    '<div class="ph-actions">' +
+                        '<div class="ph-search">' +
+                            '<div style="position:relative;display:flex;align-items:center;width:100%">' +
+                                '<div class="sfb-search-icon-wrap" style="position:absolute;left:10px;display:flex;pointer-events:none;color:var(--text-color-cui-tertiary)">' + icons.search + '</div>' +
+                                '<input type="text" class="ph-input" id="findings-search" placeholder="Search findings..." value="' + esc(state.search) + '" oninput="handleSearch(event)" />' +
+                                '<button class="ph-clear" id="sfb-clear-btn" onclick="clearSearch()" aria-label="Clear search" style="' + (state.search ? '' : 'display:none') + '">' + xIconSVG + '</button>' +
+                            '</div>' +
+                        '</div>' +
+                        '<button class="cui-btn icon-btn" onclick="toggleTheme()" aria-label="Toggle theme">' +
+                            (state.isDark ? icons.sun : icons.moon) +
+                        '</button>' +
+                    '</div>' +
+                '</header>'
+            );
+        }
+
+        function SideBar() {
+            return (
+                '<aside class="pl-sidebar cui-scrollbar">' +
+                    '<div class="sb-header">' +
+                        '<div class="sb-avatar"><img class="brand-logo" src="' + LOGO_DEFAULT + '" alt="REVAI"></div>' +
+                        '<span class="sb-name">REVAI</span>' +
+                        '<span class="sb-plan">' + Badge('V0.7.2', 'neutral') + '</span>' +
+                    '</div>' +
+                    '<div class="sb-separator"></div>' +
+                    '<div class="sb-section">' +
+                        '<div class="sb-label">' + icons.gitPullRequest + 'Review</div>' +
+                        '<div class="sb-row mono" title="' + esc(REVIEW_META.branch) + '">' + icons.gitPullRequest + '<span class="sb-row-label">Branch</span><span class="sb-row-value">' + esc(REVIEW_META.branch) + '</span></div>' +
+                        '<div class="sb-row">' + icons.user + '<span class="sb-row-label">Author</span><span class="sb-row-value">' + esc(REVIEW_META.author) + '</span></div>' +
+                        '<div class="gate-mini-box failed" id="gate-mini"></div>' +
+                    '</div>' +
+                    '<div class="sb-footer">Automated AI code review with a fix loop</div>' +
+                '</aside>'
+            );
+        }
+
+        function renderGateMini() {
+            const el = document.getElementById('gate-mini');
+            if (!el) return;
+            const gate = computeGate();
+            const failed = gate.status === 'failed';
+            const cls = failed ? 'failed' : (gate.skippedBlockers > 0 ? 'warn' : 'passed');
+            const status = failed ? 'Failed' : 'Passed';
+            const desc = failed
+                ? gate.blockedBy + ' critical finding(s) block approval of this review. Estimated effort to release: ' + gate.effortLabel + '.'
+                : (gate.skippedBlockers > 0
+                    ? 'Released via skipped blockers — this is not best practice.'
+                    : 'Nothing blocks — the review can be approved.');
+            el.className = 'gate-mini-box ' + cls;
+            el.innerHTML =
+                '<div class="gmb-top">' +
+                    '<span class="cui-status-dot sm ' + (failed ? 'sd-danger' : (gate.skippedBlockers > 0 ? 'sd-warn' : 'sd-success')) + '"></span>' +
+                    '<span>Quality Gate</span>' +
+                    '<strong>' + status + '</strong>' +
+                '</div>' +
+                '<div class="gmb-desc">' + esc(desc) + '</div>';
+        }
+
+        // Estimated effort (SonarQube "effort to fix"): sum of open blockers
+        const EFFORT_MINUTES = { 'quick-win': 15, estimated: 60, significant: 240 };
+
+        function formatEffort(totalMinutes) {
+            if (!totalMinutes) return '0min';
+            if (totalMinutes < 60) return '~' + totalMinutes + 'min';
+            const h = Math.floor(totalMinutes / 60);
+            const m = totalMinutes % 60;
+            return m === 0 ? '~' + h + 'h' : '~' + h + 'h' + m;
+        }
+
+        function gateEffort() {
+            let total = 0;
+            findings.forEach(function (f) {
+                if (f.status === 'resolved' || state.skipped[f.id]) return;
+                if (f.severity === 'critical' || f.severity === 'major') {
+                    total += EFFORT_MINUTES[f.effort] || EFFORT_MINUTES.estimated;
+                }
+            });
+            return formatEffort(total);
+        }
+
+        function computeGate() {
+            const active = findings.filter(function (f) { return f.status !== 'resolved' && !state.skipped[f.id]; });
+            const criticalCount = active.filter(function (f) { return f.severity === 'critical'; }).length;
+            const securityCount = active.filter(function (f) { return f.category === 'security'; }).length;
+            const skippedBlockers = findings.filter(function (f) {
+                if (f.status === 'resolved' || !state.skipped[f.id]) return false;
+                return f.severity === 'critical' || f.category === 'security';
+            }).length;
+            const failed = criticalCount > 0;
+            const criteria = [];
+            if (failed) {
+                criteria.push(criticalCount + ' critical finding(s) (max 0)');
+                if (securityCount > 0) criteria.push(securityCount + ' security hotspot(s) (max 0)');
+            } else if (skippedBlockers > 0) {
+                criteria.push(skippedBlockers + ' blocker(s) marked as Skipped');
+            } else {
+                criteria.push('No blockers in new code');
+            }
+            criteria.push(active.length + ' open findings in new code');
+            return {
+                status: failed ? 'failed' : 'passed',
+                criteria: criteria,
+                skippedBlockers: skippedBlockers,
+                blockedBy: criticalCount,
+                securityOpen: securityCount,
+                actionableOpen: active.filter(function (f) { return f.severity === 'critical' || f.severity === 'major'; }).length,
+                effortLabel: gateEffort()
+            };
+        }
+
+        // Alert (official danger/success/warn variant) — dynamic, self-explanatory gate
+        function QualityGate() {
+            const gate = computeGate();
+            const failed = gate.status === 'failed';
+            const violations = [];
+            const info = [];
+            gate.criteria.forEach(function (c) {
+                if (/new code/i.test(c)) info.push(c); else violations.push(c);
+            });
+            const desc = failed
+                ? 'This review is blocked: resolve <strong>' + gate.blockedBy + ' critical finding(s)</strong> to release approval.'
+                : (gate.skippedBlockers > 0
+                    ? 'Approval released with <strong>' + gate.skippedBlockers + ' blocker(s)</strong> marked as Skipped instead of fixed.'
+                    : 'Everything within policy — <strong>the review can be approved</strong>.');
+            const chipsHtml = (failed
+                ? violations.map(function (c) { return Badge(esc(c), 'danger', { border: true }); }).concat([Badge('Release in ' + gate.effortLabel, 'accent', { border: true })])
+                : violations.map(function (c) { return Badge(esc(c), 'warn', { border: true }); })
+            ).concat(info.map(function (c) {
+                return Badge(esc(c), 'neutral', { border: true });
+            })).join('');
+
+            let actionHtml = '';
+            if (failed) {
+                actionHtml = '<div class="cui-alert-action">' +
+                    '<button class="cui-btn btn-black btn-sm" onclick="scrollToResults()" title="Go to the findings blocking the gate">' +
+                        icons.target + '<span>Resolve findings</span>' +
+                    '</button>' +
+                '</div>';
+            } else if (gate.skippedBlockers > 0) {
+                actionHtml = '<div class="cui-alert-action">' +
+                    '<button class="cui-btn btn-black btn-sm" onclick="revealSkipped()" title="View the blockers marked as Skipped">' +
+                        icons.ban + '<span>View skipped</span>' +
+                    '</button>' +
+                '</div>';
+            }
+
+            return (
+                '<div class="cui-alert ' + (failed ? 'danger' : 'success') + '">' +
+                    '<div class="cui-alert-icon">' + (failed ? icons.alertTriangle : icons.shieldCheck) + '</div>' +
+                    '<div class="cui-alert-body">' +
+                        '<div class="cui-alert-title">Quality Gate' +
+                            (failed ? Badge('Failed', 'danger') : Badge('Passed', 'success')) +
+                        '</div>' +
+                        '<div class="cui-alert-desc">' + desc + '</div>' +
+                        '<div class="cui-alert-chips">' + chipsHtml + '</div>' +
+                    '</div>' +
+                    actionHtml +
+                '</div>'
+            );
+        }
+
+        function SkippedWarning() {
+            const gate = computeGate();
+            if (gate.status === 'failed' || gate.skippedBlockers === 0) return '';
+            return (
+                '<div class="cui-alert warn">' +
+                    '<div class="cui-alert-icon">' + icons.alertTriangle + '</div>' +
+                    '<div class="cui-alert-body">' +
+                        '<div class="cui-alert-title">Skipped blockers' + Badge('Attention', 'warn') + '</div>' +
+                        '<div class="cui-alert-desc"><strong>' + gate.skippedBlockers + ' blocker(s)</strong> were marked as Skipped instead of fixed. <strong>This is not best practice</strong>: critical and security issues must be resolved before approval, not ignored.</div>' +
+                    '</div>' +
+                    '<div class="cui-alert-action">' +
+                        '<button class="cui-btn btn-sm" onclick="revealSkipped()">' + icons.rotateCcw + '<span>Review skipped</span></button>' +
+                    '</div>' +
+                '</div>'
+            );
+        }
+
+        function scrollToGroup(name) {
+            const el = document.getElementById('group-' + name) || document.getElementById('results');
+            if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function scrollToResults() {
+            if (!state.actionableOpen) {
+                state.actionableOpen = true;
+                renderResults();
+            }
+            scrollToGroup('actionable');
+        }
+
+        function revealSkipped() {
+            state.skippedOpen = true;
+            renderResults();
+            scrollToGroup('skipped');
+        }
+
+        function renderGate() {
+            const zone = document.getElementById('gate-zone');
+            if (zone) zone.innerHTML = QualityGate() + SkippedWarning();
+            renderGateMini();
+        }
+
+        function Hero() {
+            return (
+                '<div class="cui-card hero">' +
+                    '<div class="cui-card-header">' +
+                        '<div class="cc-avatar"><img class="brand-logo" src="' + LOGO_DEFAULT + '" alt="REVAI Agent"></div>' +
+                        '<span class="cc-title">Summary</span>' +
+                        '<span class="cc-note">Summary by REVAI Agent</span>' +
+                    '</div>' +
+                    '<div class="cc-section walkthrough">' + parseMarkdown(REVIEW_META.walkthrough) + '</div>' +
+                    '<div class="cc-section">' +
+                        '<div class="table-wrap">' +
+                            '<table class="cui-table">' +
+                                '<thead><tr><th>File</th><th>Summary</th><th>Issues</th><th>Effort</th></tr></thead>' +
+                                '<tbody>' +
+                                    REVIEW_META.files.map(function (file) {
+                                        const eff = EFFORT[file.effort] || { label: file.effort };
+                                        const effIco = effIcon(file.effort);
+                                        const fileFindings = findings.filter(function (f) { return f.file === file.path; });
+                                        const dotCls = fileFindings.some(function (f) { return f.severity === 'critical'; }) ? 'sd-danger'
+                                            : (fileFindings.some(function (f) { return f.severity === 'major'; }) ? 'sd-warn' : 'sd-neutral');
+                                        return '<tr>' +
+                                            '<td class="ft-path">' + esc(file.path) + '</td>' +
+                                            '<td>' + esc(file.summary) + '</td>' +
+                                            '<td><span class="cui-status-dot sm ' + dotCls + '" style="margin-right:6px"></span><span class="ft-count">' + file.issues + '</span></td>' +
+                                            '<td><span class="ft-effort">' + effIco + esc(eff.label) + '</span></td>' +
+                                        '</tr>';
+                                    }).join('') +
+                                '</tbody>' +
+                            '</table>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+            );
+        }
+
+        function FileSelect() {
+            return (
+                '<div class="file-select-wrap">' +
+                    '<select class="file-select" id="file-select" onchange="handleSelectFile(this.value)" aria-label="Filter by file">' +
+                        '<option value="">All files (' + findings.length + ')</option>' +
+                        REVIEW_META.files.map(function (file) {
+                            return '<option value="' + esc(file.path) + '">' + esc(file.path) + '</option>';
+                        }).join('') +
+                    '</select>' +
+                '</div>'
+            );
+        }
+
+        function catBadge(f) {
+            return Badge(CATEGORY[f.category].label, CATEGORY[f.category].badge, { border: true, icon: catIcon(f.category) });
+        }
+
+        function catIcon(category) {
+            if (category === 'security') return icons.shield;
+            if (category === 'performance') return icons.zap;
+            if (category === 'stability') return icons.activity;
+            return icons.database;
+        }
+
+        function sevBadge(f) {
+            return Badge(SEVERITY[f.severity].label, SEVERITY[f.severity].badge, { dot: true });
+        }
+
+        function effortBadge(f) {
+            return Badge(EFFORT[f.effort] ? EFFORT[f.effort].label : f.effort, 'neutral', { icon: effIcon(f.effort) });
+        }
+
+        function effIcon(effort) {
+            if (effort === 'quick-win') return icons.zap;
+            if (effort === 'significant') return icons.wrench;
+            return icons.clock;
+        }
+
+        // Code Block (official card variant)
+        function CodeBlock(f) {
+            const fix = f.proposedFix;
+            let lines = [];
+            (fix.before || []).forEach(function (l) {
+                lines.push('<span class="cb-line del"><span class="cb-sign">-</span>' + esc(l) + '</span>');
+            });
+            (fix.after || []).forEach(function (l) {
+                lines.push('<span class="cb-line add"><span class="cb-sign">+</span>' + esc(l) + '</span>');
+            });
+            const idx = findings.indexOf(f);
+            return (
+                '<div class="cui-code-block">' +
+                    '<div class="cb-head">' +
+                        '<div class="cb-file-info">' + icons.fileDiff + '<span class="cb-filename">Proposed fix · diff · ' + esc(f.file) + ' ' + esc(f.lines || '') + '</span></div>' +
+                        '<button class="cui-btn btn-transparent btn-xs" onclick="copyFindingDiff(this,' + idx + ')" aria-label="Copy code">' + copyIconSVG + '<span>Copy</span></button>' +
+                    '</div>' +
+                    '<div class="cb-surface"><pre>' + lines.join('') + '</pre></div>' +
+                '</div>'
+            );
+        }
+
+        function copyText(text, btn, label, copiedLabel) {
+            label = label || 'Copy';
+            copiedLabel = copiedLabel || 'Copied!';
+            function success() {
+                btn.classList.add('copied');
+                btn.innerHTML = checkIconSVG + '<span>' + copiedLabel + '</span>';
+                setTimeout(function () {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = copyIconSVG + '<span>' + label + '</span>';
+                }, 3000);
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(success).catch(function () { fallbackCopy(text, success); });
+            } else {
+                fallbackCopy(text, success);
+            }
+        }
+
+        function fallbackCopy(text, success) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            success();
+        }
+
+        function copyFindingDiff(btn, idx) {
+            const f = findings[idx];
+            if (!f) return;
+            let text;
+            if (f.proposedFix) {
+                const parts = [];
+                (f.proposedFix.before || []).forEach(function (l) { parts.push('- ' + l); });
+                (f.proposedFix.after || []).forEach(function (l) { parts.push('+ ' + l); });
+                text = parts.join('\n');
+            } else {
+                text = f.copilotSummary || '';
+            }
+            copyText(text, btn, 'Copy', 'Copied!');
+        }
+
+        // Copy as a plain-text prompt the user can paste into any agent session
+        function plainify(text) {
+            let s = String(text || '');
+            s = s.replace(/```(\w+)?\n?([\s\S]*?)```/g, function (m, lang, code) {
+                return '\n' + code.replace(/^\n/, '').replace(/\n$/, '') + '\n';
+            });
+            s = s.replace(/\*\*(.*?)\*\*/g, '$1');
+            s = s.replace(/`([^`]+)`/g, '$1');
+            return s.trim();
+        }
+
+        function findingPromptText(f) {
+            const parts = [];
+            parts.push('Fix the following code review item (REVAI):');
+            parts.push('- Item: ' + f.id + ' (#' + f.num + ') — Severity: ' + SEVERITY[f.severity].label + ' (' + CATEGORY[f.category].label + ') — Effort: ' + (EFFORT[f.effort] ? EFFORT[f.effort].label : f.effort));
+            parts.push('- File: ' + f.file + ' (lines ' + (f.lines || '?') + ')');
+            parts.push('- Problem: ' + f.title);
+            parts.push('- Description: ' + plainify(f.description));
+            if (f.rationale) parts.push('- Why: ' + plainify(f.rationale));
+            if (f.proposedFix) {
+                const fixLines = [];
+                (f.proposedFix.before || []).forEach(function (l) { fixLines.push('- ' + l); });
+                (f.proposedFix.after || []).forEach(function (l) { fixLines.push('+ ' + l); });
+                parts.push('- Proposed fix:\n' + fixLines.join('\n'));
+            } else if (f.copilotSummary) {
+                parts.push('- Current suggestion:\n' + plainify(f.copilotSummary));
+            }
+            parts.push('- Branch: ' + REVIEW_META.branch);
+            parts.push('Apply the smallest possible fix, preserving expected behavior.');
+            return parts.join('\n');
+        }
+
+        function copyFindingPrompt(btn, idx) {
+            const f = findings[idx];
+            if (!f) return;
+            copyText(findingPromptText(f), btn, 'Copy prompt', 'Copied!');
+        }
+
+        // ReviewComment (official structure: gutter + header band + body + footer)
+        function FindingCard(f, idx) {
+            const resolved = f.status === 'resolved';
+            const skipped = !!state.skipped[f.id];
+            const dimmed = resolved || skipped;
+            return (
+                '<div class="rc' + (dimmed ? ' resolved' : '') + '">' +
+                    '<div class="rc-gutter">' +
+                        '<div class="rc-avatar"><img class="brand-logo" src="' + LOGO_DEFAULT + '" alt="" title="REVAI"></div>' +
+                    '</div>' +
+                    '<div class="rc-main">' +
+                        (resolved ? '<span class="rc-resolved-tag">' + Badge('Resolved', 'success') + '</span>' : '') +
+                        (skipped ? '<span class="rc-resolved-tag">' + Badge('Skipped', 'neutral') + '</span>' : '') +
+                        '<div class="rc-card">' +
+                            '<div class="rc-header">' +
+                                '<span class="rc-author">REVAI</span>' +
+                                Badge('Bot', 'accent') +
+                                '<span class="rc-meta">' + esc(f.file) + ' · ' + esc(f.lines || '') + '</span>' +
+                                '<div class="rc-actions">' +
+                                    catBadge(f) +
+                                    sevBadge(f) +
+                                    effortBadge(f) +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="rc-body">' +
+                                '<div class="rc-title">' + esc(f.title) + '</div>' +
+                                '<div>' + parseMarkdown(f.description || '') + '</div>' +
+                                (f.rationale
+                                    ? '<div class="rc-why"><span class="why-label">Why</span>' + parseMarkdown(f.rationale) + '</div>'
+                                    : '') +
+                                (f.proposedFix
+                                    ? CodeBlock(f)
+                                    : '<div class="prose-code">' + parseMarkdown(f.copilotSummary || '', f.file, f.lines) + '</div>') +
+                            '</div>' +
+                            '<div class="rc-footer">' +
+                                '<button class="cui-btn btn-transparent btn-xs" onclick="copyFindingDiff(this,' + idx + ')">' + copyIconSVG + '<span>Copy ' + (f.proposedFix ? 'diff' : 'code') + '</span></button>' +
+                                '<button class="cui-btn btn-transparent btn-xs" onclick="copyFindingPrompt(this,' + idx + ')" title="Copy as a prompt for an agent to fix">' + icons.clipboardList + '<span>Copy prompt</span></button>' +
+                                (skipped
+                                    ? '<button class="cui-btn btn-xs" onclick="toggleSkip(\'' + f.id + '\')" title="Return the finding to the to-fix list">' + icons.rotateCcw + '<span>Restore</span></button>'
+                                    : '<button class="cui-btn btn-xs" onclick="toggleSkip(\'' + f.id + '\')" title="Mark as not viable to change now">' + icons.ban + '<span>Skip</span></button>') +
+                                (dimmed ? '' : '<button class="cui-btn btn-black btn-sm" onclick="showFixToast()">' + icons.wand + '<span>Fix</span></button>') +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+            );
+        }
+
+        function groupTitle(name) {
+            if (name === 'actionable') return 'Actionable';
+            if (name === 'nitpicks') return 'Nitpicks';
+            return 'Skipped';
+        }
+
+        function GroupHtml(name, open, cardsHtml) {
+            return (
+                '<div class="card-group cui-card ' + name + (open ? ' open' : '') + '" id="group-' + name + '">' +
+                    '<button class="cui-card-header" onclick="toggleGroup(\'' + name + '\')" aria-expanded="' + (open ? 'true' : 'false') + '">' +
+                        '<div class="g-icon">' + iconSvg(name) + '</div>' +
+                        '<div><div class="g-title">' + groupTitle(name) + '</div>' +
+                        '<div class="g-sub">' + esc(subText(name)) + '</div></div>' +
+                        '<span data-group-count="' + name + '"></span>' +
+                        '<svg class="g-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
+                    '</button>' +
+                    '<div class="group-body"><div class="group-body-inner">' +
+                        '<div class="rc-thread">' + cardsHtml + '</div>' +
+                    '</div></div>' +
+                '</div>'
+            );
+        }
+
+        function iconSvg(name) {
+            if (name === 'actionable') return icons.alertTriangle;
+            if (name === 'nitpicks') return icons.sparkles;
+            return icons.ban;
+        }
+
+        function subText(name) {
+            if (name === 'actionable') return 'Should be resolved before merge';
+            if (name === 'nitpicks') return 'Optional — do not block the merge';
+            return 'Deemed not viable to change now';
+        }
+
+        function EmptyState() {
+            return (
+                '<div class="empty-state">' +
+                    icons.fileText +
+                    '<h3 class="empty-title">No findings found</h3>' +
+                    '<p class="empty-desc">Adjust the search or the filters to see results.</p>' +
+                '</div>'
+            );
+        }
+
+        function PageFooter() {
+            return (
+                '<footer class="pl-footer">' +
+                    '<span>REVAI · v0.7.2</span>' +
+                    '<span>Design system: Carrot UI (CodeRabbit)</span>' +
+                '</footer>'
+            );
+        }
+
+        function toastHtml() {
+            return (
+                '<div class="cui-toast" id="fix-toast" role="status">' +
+                    '<div class="cui-toast-icon">' + icons.wand + '</div>' +
+                    '<div><div class="cui-toast-title">Coming soon</div>' +
+                    '<div class="cui-toast-msg">The Fix button will apply the proposed fix automatically in a future version.</div></div>' +
+                '</div>'
+            );
+        }
+
+        function matchesSearch(f) {
+            const q = state.search.trim().toLowerCase();
+            if (!q) return true;
+            const hay = (f.title + ' ' + (f.description || '') + ' ' + (f.rationale || '') + ' ' + f.file + ' ' + f.id).toLowerCase();
+            return hay.indexOf(q) >= 0;
+        }
+
+        let searchTimeout;
+        function handleSearch(event) {
+            state.search = event.target.value;
+            const clearBtn = document.getElementById('sfb-clear-btn');
+            if (clearBtn) clearBtn.style.display = state.search ? '' : 'none';
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function () {
+                renderResults();
+            }, 150);
+        }
+
+        function clearSearch() {
+            state.search = '';
+            const input = document.getElementById('findings-search');
+            if (input) { input.value = ''; input.focus(); }
+            const clearBtn = document.getElementById('sfb-clear-btn');
+            if (clearBtn) clearBtn.style.display = 'none';
+            renderResults();
+        }
+
+        function handleSeverityFilter(sev) {
+            state.selectedSeverity = sev;
+            renderResults();
+        }
+
+        function handleFileFilter(file) {
+            state.selectedFile = state.selectedFile === file ? null : file;
+            const select = document.getElementById('file-select');
+            if (select) select.value = state.selectedFile || '';
+            renderResults();
+        }
+
+        function handleSelectFile(value) {
+            state.selectedFile = value || null;
+            renderResults();
+        }
+
+        const GROUP_STATE_KEYS = { actionable: 'actionableOpen', nitpicks: 'nitpicksOpen', skipped: 'skippedOpen' };
+
+        function toggleGroup(name) {
+            const key = GROUP_STATE_KEYS[name];
+            if (!key) return;
+            state[key] = !state[key];
+            const group = document.getElementById('group-' + name);
+            if (group) {
+                group.classList.toggle('open', state[key]);
+                const btn = group.querySelector('.cui-card-header');
+                if (btn) btn.setAttribute('aria-expanded', state[key] ? 'true' : 'false');
+            }
+        }
+
+        let toastTimeout;
+        function showToast(title, msg) {
+            const toast = document.getElementById('fix-toast');
+            if (!toast) return;
+            const titleEl = toast.querySelector('.cui-toast-title');
+            const msgEl = toast.querySelector('.cui-toast-msg');
+            if (titleEl) titleEl.textContent = title;
+            if (msgEl) msgEl.textContent = msg;
+            toast.setAttribute('data-visible', 'true');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(function () { toast.setAttribute('data-visible', 'false'); }, 3500);
+        }
+
+        function showFixToast() {
+            showToast('Coming soon', 'The Fix button will apply the proposed fix automatically in a future version.');
+        }
+
+        function toggleSkip(id) {
+            if (state.skipped[id]) {
+                delete state.skipped[id];
+                showToast('Finding restored', 'The finding is back on the to-fix list.');
+            } else {
+                state.skipped[id] = true;
+                showToast('Moved to Skipped', 'This finding will not be fixed in this pass.');
+            }
+            renderResults();
+            renderGate();
+        }
+
+        function toggleTheme() {
+            state.isDark = !state.isDark;
+            const theme = state.isDark ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            saveConfig({ theme: theme });
+            render();
+        }
+
+        function copyCode(btn) {
+            const pre = btn.closest('.cui-code-block').querySelector('pre');
+            const text = pre.querySelector('code') ? pre.querySelector('code').innerText : pre.innerText;
+            copyText(text, btn, 'Copy', 'Copied!');
+        }
+
+        function parseMarkdown(text, file, lines) {
+            let html = text;
+            const codeBlocks = [];
+            html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, function (match, lang, code) {
+                const content = code.replace(/^\n/, '').replace(/\n$/, '').trim();
+                if (!content) return '';
+                const fileInfo = (file || lines)
+                    ? '<div class="cb-file-info">' + fileIconSVG + (file ? '<span class="cb-filename">' + esc(file) + '</span>' : '') + (lines ? '<span>· Lines ' + esc(lines) + '</span>' : '') + '</div>'
+                    : '<div></div>';
+                const toolbar = '<div class="cb-head">' + fileInfo + '<button class="cui-btn btn-transparent btn-xs" onclick="copyCode(this)" aria-label="Copy code">' + copyIconSVG + '<span>Copy</span></button></div>';
+                codeBlocks.push('<div class="cui-code-block">' + toolbar + '<div class="cb-surface"><pre><code>' + esc(content) + '</code></pre></div></div>');
+                return '___CODEBLOCK_' + (codeBlocks.length - 1) + '___';
+            });
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+            html = html.replace(/\n/g, '<br>');
+            html = html.replace(/(<br\s*\/?>\s*)+___CODEBLOCK_/g, '___CODEBLOCK_');
+            html = html.replace(/___CODEBLOCK_(\d+)___/g, function (match, index) {
+                return codeBlocks[parseInt(index, 10)];
+            });
+            return html;
+        }
+
+        function renderResults() {
+            const container = document.getElementById('results');
+            if (!container) return;
+
+            const base = findings.filter(function (f) {
+                if (!matchesSearch(f)) return false;
+                if (state.selectedSeverity !== 'all' && f.severity !== state.selectedSeverity) return false;
+                if (state.selectedFile && f.file !== state.selectedFile) return false;
+                return true;
+            });
+            const open = base.filter(function (f) { return !state.skipped[f.id]; });
+            const skippedList = base.filter(function (f) { return !!state.skipped[f.id]; });
+            const actionable = open.filter(function (f) { return f.severity === 'critical' || f.severity === 'major'; });
+            const nitpicks = open.filter(function (f) { return f.severity === 'minor' || f.severity === 'trivial'; });
+
+            const chips = [];
+            if (state.selectedSeverity !== 'all') {
+                chips.push('<button class="chip" onclick="handleSeverityFilter(\'all\')" title="Remove filter">' + xIconSVG + SEVERITY[state.selectedSeverity].label + '</button>');
+            }
+            if (state.selectedFile) {
+                const name = state.selectedFile.slice(state.selectedFile.lastIndexOf('/') + 1);
+                chips.push('<button class="chip" onclick="handleSelectFile(\'\')" title="Remove filter">' + xIconSVG + esc(name) + '</button>');
+            }
+
+            let groupsHtml = '';
+            if (base.length === 0) {
+                groupsHtml = EmptyState();
+            } else {
+                if (actionable.length > 0) {
+                    groupsHtml += GroupHtml('actionable', state.actionableOpen, actionable.map(function (f) {
+                        return FindingCard(f, findings.indexOf(f));
+                    }).join(''));
+                }
+                if (nitpicks.length > 0) {
+                    groupsHtml += GroupHtml('nitpicks', state.nitpicksOpen, nitpicks.map(function (f) {
+                        return FindingCard(f, findings.indexOf(f));
+                    }).join(''));
+                }
+                if (skippedList.length > 0) {
+                    groupsHtml += GroupHtml('skipped', state.skippedOpen, skippedList.map(function (f) {
+                        return FindingCard(f, findings.indexOf(f));
+                    }).join(''));
+                }
+            }
+
+            const totalText = open.length + (skippedList.length > 0 ? ' + ' + skippedList.length + ' skipped' : '');
+            container.innerHTML =
+                '<div class="findings-head">' +
+                    icons.target +
+                    '<h2 class="section-title">Findings</h2>' +
+                    '<span class="results-total-badge">' + open.length + '</span>' +
+                    '<span class="active-chips">' + chips.join('') + '</span>' +
+                    '<span class="results-count">' + totalText + (open.length === 1 ? ' result' : ' results') + '</span>' +
+                '</div>' +
+                '<div class="filter-row">' +
+                    '<span class="filter-label">Severity</span>' +
+                    '<button class="cui-filter' + (state.selectedSeverity === 'all' ? ' active' : '') + '" onclick="handleSeverityFilter(\'all\')">Todos<span class="fp-count" data-count-sev="all">0</span></button>' +
+                    ['critical', 'major', 'minor', 'trivial'].map(function (sev) {
+                        return '<button class="cui-filter f-' + sev + (state.selectedSeverity === sev ? ' active' : '') + '" onclick="handleSeverityFilter(\'' + sev + '\')">' +
+                            '<span class="cui-status-dot sm ' + (sev === 'critical' ? 'sd-danger' : sev === 'major' ? 'sd-accent' : sev === 'minor' ? 'sd-warn' : 'sd-neutral') + '"></span>' +
+                            SEVERITY[sev].label +
+                            '<span class="fp-count" data-count-sev="' + sev + '">0</span></button>';
+                    }).join('') +
+                '</div>' +
+                groupsHtml;
+
+            const counts = { all: open.length, critical: 0, major: 0, minor: 0, trivial: 0 };
+            open.forEach(function (f) { counts[f.severity]++; });
+            Object.keys(counts).forEach(function (sev) {
+                const el = container.querySelector('[data-count-sev="' + sev + '"]');
+                if (el) el.textContent = counts[sev];
+            });
+            const gAct = container.querySelector('[data-group-count="actionable"]');
+            if (gAct) gAct.innerHTML = Badge(String(actionable.length), 'danger');
+            const gNit = container.querySelector('[data-group-count="nitpicks"]');
+            if (gNit) gNit.innerHTML = Badge(String(nitpicks.length), 'neutral');
+            const gSkip = container.querySelector('[data-group-count="skipped"]');
+            if (gSkip) gSkip.innerHTML = Badge(String(skippedList.length), 'neutral');
+        }
+
+        function render() {
+            const app =
+                '<div class="page-layout">' +
+                    SideBar() +
+                    '<div class="pl-main">' +
+                        PageHeader() +
+                        '<div class="pl-body cui-scrollbar">' +
+                            '<div id="gate-zone"></div>' +
+                            Hero() +
+                            FileSelect() +
+                            '<div id="results"></div>' +
+                        '</div>' +
+                        PageFooter() +
+                    '</div>' +
+                '</div>' +
+                toastHtml();
+
+            document.getElementById('root').innerHTML = app;
+            renderResults();
+            renderGate();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.documentElement.setAttribute('data-theme', state.isDark ? 'dark' : 'light');
+            render();
+        });
+    </script>
+</body>
+</html>

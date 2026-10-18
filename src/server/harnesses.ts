@@ -11,7 +11,8 @@ export const HARNESS_DEFS: HarnessDef[] = [
   { id: 'kiro', name: 'Kiro CLI', cli: 'kiro-cli', logo: 'K', models: ['auto'] },
   { id: 'claude', name: 'Claude Code', cli: 'claude', logo: 'C', models: ['auto', 'claude-sonnet-4.5', 'claude-opus-4.1'] },
   { id: 'codex', name: 'Codex CLI', cli: 'codex', logo: 'DX', models: ['auto'] },
-  { id: 'opencode', name: 'OpenCode', cli: 'opencode', logo: 'OC', models: ['auto'] },
+  // seeded with the opencode-go GLM models; any other provider/model works via the custom input
+  { id: 'opencode', name: 'OpenCode', cli: 'opencode', logo: 'OC', models: ['auto', 'opencode-go/glm-5.3', 'opencode-go/glm-5.3-flash'] },
   { id: 'copilot', name: 'Copilot CLI', cli: 'copilot', logo: 'CH', models: ['auto'] },
 ]
 
@@ -112,17 +113,20 @@ export function invoke(
       ]
       break
     case 'codex':
-      argv = [exe, ...modelArg('-m'), 'exec', '--sandbox', 'workspace-write', '--skip-git-repo-check']
+      argv = [exe, 'exec', ...modelArg('-m'), '--sandbox', 'workspace-write', '--skip-git-repo-check']
       break
     case 'opencode':
-      argv = [exe, ...modelArg('--model'), 'run']
+      argv = [exe, 'run', ...modelArg('--model')]
       break
     case 'copilot':
       argv = [exe, ...modelArg('--model'), '-p'] // experimental — template editable in harnesses.json
       break
     case 'kiro':
     default:
-      argv = [exe, 'exec', ...modelArg('--model')]
+      // kiro-cli 2.x has no `exec` subcommand (it arrives in newer releases) —
+      // `chat --no-interactive` reads the prompt from stdin; fs_read+fs_write lets the
+      // agent read the repo and write the deliverable JSONs/fixes, with no shell
+      argv = [exe, 'chat', '--no-interactive', '--trust-tools=fs_read,fs_write', ...modelArg('--model')]
   }
   return { argv, stdin: true }
 }
@@ -232,7 +236,9 @@ export async function validateHarness(defId: string): Promise<ValidateResult> {
   // 3. authenticated session + 4. test prompt — requires a standalone "OK" line and exit 0
   // (echoes of the prompt itself do NOT count — avoid the false positive like the codex 401)
   t = ms()
-  const inv = invoke(defId, 'review', exe, undefined)
+  // the validation runs with the harness's saved model — so it reflects the real configuration
+  const savedModel = states.find((x) => x.defId === defId)?.model
+  const inv = invoke(defId, 'review', exe, savedModel)
   const argv2 = finalArgv(inv, 'Respond with only the word OK.')
   const tr = await stream(argv2, { cwd: undefined, stdin: inv.stdin ? 'Respond with only the word OK.' : undefined, timeoutMs: 180_000 })
   const all = tr.stdout + '\n' + tr.stderr

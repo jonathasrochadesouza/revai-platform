@@ -6,14 +6,47 @@ import path from 'node:path'
 import { exec } from './proc'
 import { AppError } from './errors'
 import { appRoot } from './root'
+import * as g from './git'
 
 export const PLATFORM_ROOT = appRoot()
-const DEFAULT_SKILL_DIR = path.resolve(PLATFORM_ROOT, 'skill-version', 'revai', 'skills', 'revai')
+// the skill is vendored in the repo (resources/revai-skill); skill-version/ is the legacy location
+const VENDORED_SKILL_DIR = path.resolve(PLATFORM_ROOT, 'resources', 'revai-skill')
+const LEGACY_SKILL_DIR = path.resolve(PLATFORM_ROOT, 'skill-version', 'revai', 'skills', 'revai')
+
+const hasScripts = (dir: string) => fs.existsSync(path.join(dir, 'scripts', 'revai.mjs'))
+
+/** files inside app.asar cannot be spawned by a child node process — use the unpacked twin */
+function unpackAsar(dir: string): string {
+  return dir.includes('app.asar') && !dir.includes('app.asar.unpacked')
+    ? dir.replace('app.asar', 'app.asar.unpacked')
+    : dir
+}
+
+/** best-effort resolution without throwing: '' when the skill is absent */
+export function findSkillDir(): string {
+  const candidates = [
+    process.env.REVAI_SKILL_DIR ? unpackAsar(path.resolve(process.env.REVAI_SKILL_DIR)) : '',
+    unpackAsar(VENDORED_SKILL_DIR),
+    LEGACY_SKILL_DIR,
+  ].filter(Boolean)
+  for (const dir of candidates) {
+    if (hasScripts(dir)) return dir
+  }
+  return ''
+}
+
+export function skillAvailable(): boolean {
+  return findSkillDir() !== ''
+}
 
 export function skillDir(): string {
-  const dir = process.env.REVAI_SKILL_DIR ? path.resolve(process.env.REVAI_SKILL_DIR) : DEFAULT_SKILL_DIR
-  if (!fs.existsSync(path.join(dir, 'scripts', 'revai.mjs'))) {
-    throw new AppError('skill/not-found', `revai skill not found in ${dir}`, 'Set REVAI_SKILL_DIR or keep skill-version/ at the project root')
+  const dir = findSkillDir()
+  if (!dir) {
+    throw new AppError(
+      'skill/not-found',
+      'revai skill not found (REVAI_SKILL_DIR, resources/revai-skill and skill-version/ all missing)',
+      'Vendor the skill at resources/revai-skill or point REVAI_SKILL_DIR to a checkout of it',
+    )
   }
   return dir
 }
@@ -85,4 +118,34 @@ export async function generateReview(cloneDir: string, slug: string, timeoutMs =
   }
   const htmlPath = path.join(cloneDir, '.revai', 'reviews', `${slug}-review.html`)
   return { htmlPath: exists(htmlPath) ? htmlPath : '' }
+}
+
+/** built-in fallback (no skill): same artifact shape as the skill's `revai.mjs diff --current`,
+ *  but using the platform's own base/head refs instead of the skill's origin/HEAD detection */
+export async function fallbackDiff(repoDir: string, slug: string, base: string, head: string): Promise<DiffOutput> {
+  const baseRef = base.startsWith('origin/') ? base : `origin/${base}`
+  let mb = await g.mergeBase(repoDir, head, baseRef)
+  if (!mb && !base.startsWith('origin/')) mb = await g.mergeBase(repoDir, head, base)
+  const range = `${mb ?? base}...${head}`
+  const r = await g.git(['diff', '--no-color', '--no-ext-diff', '--unified=3', range], repoDir, 120_000)
+  if (r.code !== 0) {
+    throw new AppError('diff/failed', 'git diff finished with an error', r.stderr.trim().split('\n').slice(-3).join('\n') || undefined, 500)
+  }
+  const patch = r.stdout.replace(/\r\n/g, '\n')
+  if (!patch.trim()) {
+    throw new AppError('repo/empty-diff', 'Empty patch — no changes between base and head', undefined, 409)
+  }
+  const dataDir = path.join(repoDir, '.revai', 'data')
+  fs.mkdirSync(dataDir, { recursive: true })
+  const patchPath = path.join(dataDir, `${slug}.patch`)
+  fs.writeFileSync(patchPath, patch, 'utf8')
+  const ns = await g.git(['diff', '--no-color', '--no-ext-diff', '--numstat', range], repoDir, 120_000)
+  const stat = g.parseNumstat(ns.stdout)
+  return {
+    slug,
+    patchPath,
+    filesChanged: stat.files.filter((f) => !f.ignored).length,
+    additions: stat.additions,
+    deletions: stat.deletions,
+  }
 }

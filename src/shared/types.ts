@@ -147,7 +147,7 @@ export interface Prepared {
   label: string // "github.com/acme/checkout-api"
   head: string // display label
   headBranch: string // local branch in the clone
-  refKind: 'branch' | 'pr' | 'sha' | 'working-tree'
+  refKind: 'branch' | 'pr' | 'sha' | 'working-tree' | 'folder-full'
   base: string
   baseSuggestions: string[] // ["main (origin/HEAD)", "develop", …]
   branches: string[] // available origin/* refs
@@ -158,6 +158,8 @@ export interface Prepared {
   rules: RulesInfo
   languages: string[]
   estimateMs: number
+  /** present when the review mode degrades (e.g. empty diff vs base → full-folder review) */
+  warning?: string
   commits?: number
   lastCommitAuthor?: string
 }
@@ -184,7 +186,7 @@ export interface ReviewRecord {
   harnessId: string
   harnessName: string
   model?: string
-  refKind: 'branch' | 'pr' | 'sha' | 'working-tree'
+  refKind: 'branch' | 'pr' | 'sha' | 'working-tree' | 'folder-full'
   stats: { filesChanged: number; additions: number; deletions: number; durationMs: number }
   rules: RulesInfo
   meta?: ReviewMeta

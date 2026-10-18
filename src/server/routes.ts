@@ -70,10 +70,14 @@ api.post('/harnesses', async (c) => {
   const body = pick<{ id?: string; exe?: string; model?: string; isDefault?: boolean; customName?: string }>(await c.req.json().catch(() => ({})))
   if (!body.id) throw new AppError('harness/not-found', 'Harness id is required')
   if (body.id.startsWith('custom-')) {
-    const customName = body.customName && body.customName.trim()
+    // update preserves the existing name/exe — a model change must not wipe the custom harness
+    const states = store.readHarnessStates()
+    const current = states.find((s) => s.defId === body.id)
+    const customName = (body.customName && body.customName.trim()) || current?.customName
     if (!customName) throw new AppError('harness/not-found', 'customName is required for a custom harness')
-    if (!body.exe || !fs.existsSync(body.exe)) throw new AppError('harness/not-found', 'Invalid executable path')
-    store.upsertHarnessState({ defId: body.id, customName, exe: body.exe })
+    const exe = body.exe && fs.existsSync(body.exe) ? body.exe : current?.exe
+    if (!exe || !fs.existsSync(exe)) throw new AppError('harness/not-found', 'Invalid executable path')
+    store.upsertHarnessState({ defId: body.id, customName, exe, ...(body.model ? { model: body.model } : {}) })
   } else {
     const states = store.readHarnessStates()
     if (body.isDefault) for (const s of states) s.isDefault = false

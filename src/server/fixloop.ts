@@ -176,10 +176,12 @@ export async function runFix(
         const reviewJsonP = path.join(record.repo.dir!, '.revai', 'data', `${record.slug}-review.json`)
         if (fs.existsSync(reviewJsonP)) {
           fs.writeFileSync(reviewJsonP, JSON.stringify(record.findings, null, 2) + '\n', 'utf8')
-          const gen = await skill.generateReview(record.repo.dir!, record.slug)
-          if (gen.htmlPath) {
-            fs.copyFileSync(gen.htmlPath, path.join(recordDir(record.id), 'review.html'))
-            record.artifacts.html = record.artifacts.html ?? 'review.html'
+          if (skill.skillAvailable()) {
+            const gen = await skill.generateReview(record.repo.dir!, record.slug)
+            if (gen.htmlPath) {
+              fs.copyFileSync(gen.htmlPath, path.join(recordDir(record.id), 'review.html'))
+              record.artifacts.html = record.artifacts.html ?? 'review.html'
+            }
           }
         }
       } catch { /* no sync — the platform UI is the primary source */ }

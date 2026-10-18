@@ -10,8 +10,13 @@ files:
   - electron/**/*
   - dist/app/**/*
   - dist/server/**/*
+  - resources/**/*
   - '!node_modules/**'
 asar: true
+# the skill scripts are spawned by child node processes — they must exist as real
+# files on disk, not inside app.asar
+asarUnpack:
+  - resources/**
 
 win:
   target:

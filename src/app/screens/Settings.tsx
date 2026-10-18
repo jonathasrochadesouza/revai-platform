@@ -1,12 +1,13 @@
-// 09-settings — General / Global rules / Data & cache / Git access
+// 09-settings — General / Runner / Global rules / Data & cache / Git access
 import { useEffect, useState } from 'react'
-import { Icon, useToast, fmtBytes } from '../ui'
+import { Icon, useToast, fmtBytes, relTime } from '../ui'
 import { get, post, put } from '../api'
 import { setTheme } from '../App'
-import type { Settings } from '../../shared/types'
+import type { OnboardingHarness, RuntimeInfo, Settings } from '../../shared/types'
 
 type Stats = { repos: number; reposBytes: number; reviews: number }
-type Tab = 'geral' | 'regras' | 'dados' | 'git'
+type Tab = 'geral' | 'runner' | 'regras' | 'dados' | 'git'
+type Detect = { harnesses: OnboardingHarness[]; runtime: RuntimeInfo }
 
 export default function SettingsScreen() {
   const toast = useToast()
@@ -14,11 +15,49 @@ export default function SettingsScreen() {
   const [s, setS] = useState<Settings | null>(null)
   const [stats, setStats] = useState<Stats | null>(null)
   const [saving, setSaving] = useState(false)
+  const [detect, setDetect] = useState<Detect | null>(null)
+  const [validating, setValidating] = useState<Record<string, boolean>>({})
+  const [customModelFor, setCustomModelFor] = useState<string | null>(null)
+  const [customModel, setCustomModel] = useState('')
 
   useEffect(() => {
     get<Settings>('/settings').then(setS).catch(() => {})
     get<Stats>('/maintenance/stats').then(setStats).catch(() => {})
+    get<Detect>('/onboarding/detect').then(setDetect).catch(() => {})
   }, [])
+
+  const reloadDetect = () => get<Detect>('/onboarding/detect').then(setDetect).catch(() => {})
+
+  // runner actions apply immediately — they live in ~/.revai/harnesses.json, not settings.json
+  const setDefaultRunner = async (id: string, name: string) => {
+    try {
+      await post('/harnesses', { id, isDefault: true })
+      toast(`${name} is now the default runner`, 'ok')
+      await reloadDetect()
+    } catch (e: any) { toast(e.message, 'err') }
+  }
+
+  const validateRunner = async (id: string) => {
+    setValidating((v) => ({ ...v, [id]: true }))
+    try {
+      const r = await post<{ ok: boolean }>('/harnesses/validate', { id })
+      toast(r.ok ? `${id} validated` : `${id} validation failed`, r.ok ? 'ok' : 'err')
+    } catch (e: any) { toast(e.message, 'err') } finally {
+      setValidating((v) => ({ ...v, [id]: false }))
+    }
+    await reloadDetect()
+  }
+
+  const applyModel = async (id: string, name: string, raw: string) => {
+    const model = raw.trim() || 'auto'
+    try {
+      await post('/harnesses', { id, model })
+      toast(model === 'auto' ? `${name}: model set to auto` : `${name}: model ${model}`, 'ok')
+      setCustomModelFor(null)
+      setCustomModel('')
+      await reloadDetect()
+    } catch (e: any) { toast(e.message, 'err') }
+  }
 
   const upd = (patch_: Partial<Settings>) => setS((old) => (old ? { ...old, ...patch_ } : old))
 
@@ -50,9 +89,9 @@ export default function SettingsScreen() {
       <p className="lede">Local preferences in <span className="mono small">~/.revai/settings.json</span>.</p>
 
       <div className="seg" style={{ marginBottom: 24 }}>
-        {(['geral', 'regras', 'dados', 'git'] as Tab[]).map((t) => (
+        {(['geral', 'runner', 'regras', 'dados', 'git'] as Tab[]).map((t) => (
           <button key={t} aria-pressed={tab === t} onClick={() => setTab(t)}>
-            {{ geral: 'General', regras: 'Global rules', dados: 'Data & cache', git: 'Git access' }[t]}
+            {{ geral: 'General', runner: 'Runner', regras: 'Global rules', dados: 'Data & cache', git: 'Git access' }[t]}
           </button>
         ))}
       </div>
@@ -84,6 +123,95 @@ export default function SettingsScreen() {
             <input type="checkbox" checked={s.runTestsInFixLoop} onChange={(e) => upd({ runTestsInFixLoop: e.target.checked })} style={{ accentColor: 'var(--accent)' }} />
             Run tests in the fix loop
           </label>
+        </div>
+      )}
+
+      {tab === 'runner' && (
+        <div className="card pad col" style={{ gap: 14 }}>
+          <span className="small faint">
+            The default runner and its model are used by every new review — stored in{' '}
+            <span className="mono">~/.revai/harnesses.json</span>, changes apply immediately.
+          </span>
+          {!detect && (
+            <div className="row"><span className="spinner" /><span className="muted small">Detecting harnesses…</span></div>
+          )}
+          {(detect?.harnesses ?? []).map((h) => {
+            const isCustomOpen = customModelFor === h.id
+            return (
+              <div key={h.id} className="col" style={{ gap: 10, paddingBottom: 14, borderBottom: '1px solid var(--line)' }}>
+                <div className="row" style={{ gap: 10 }}>
+                  <input
+                    type="radio"
+                    name="runner-default"
+                    checked={!!h.isDefault}
+                    disabled={h.status === 'not-found'}
+                    onChange={() => void setDefaultRunner(h.id, h.name)}
+                    style={{ accentColor: 'var(--accent)' }}
+                    title="Set as the default runner"
+                    aria-label={`Set ${h.name} as the default runner`}
+                  />
+                  <span className="logo-tile">{h.logo}</span>
+                  <div className="col" style={{ gap: 2, flex: 1 }}>
+                    <span className="row" style={{ gap: 8 }}>
+                      <b>{h.name}</b>
+                      {h.version && <span className="mono num faint">{h.version}</span>}
+                      {h.isDefault && <span className="badge accent">Default</span>}
+                      {h.status === 'ready' && (
+                        <span className="badge ok"><span className="dot ok" />validated {h.validatedAt ? relTime(h.validatedAt) : ''}</span>
+                      )}
+                      {h.status === 'not-found' && <span className="badge">not found in PATH</span>}
+                    </span>
+                    <span className="small muted mono">{h.exe ?? h.detail}</span>
+                  </div>
+                  {h.status !== 'not-found' && (
+                    <button className="btn sm ghost" disabled={validating[h.id]} onClick={() => void validateRunner(h.id)}>
+                      {validating[h.id] ? <span className="spinner" /> : <><Icon name="refresh" /> Validate</>}
+                    </button>
+                  )}
+                </div>
+                {h.status !== 'not-found' && (
+                  <div className="row" style={{ gap: 10, paddingLeft: 28 }}>
+                    <label className="field" style={{ flex: 1 }}>
+                      Model
+                      <select
+                        className="select"
+                        value={isCustomOpen ? '__custom__' : (h.model ?? 'auto')}
+                        onChange={(e) => {
+                          const v = e.target.value
+                          if (v === '__custom__') {
+                            setCustomModelFor(h.id)
+                            setCustomModel(h.model && !(h.models ?? ['auto']).includes(h.model) ? h.model : '')
+                          } else {
+                            void applyModel(h.id, h.name, v)
+                          }
+                        }}
+                      >
+                        {(h.models ?? ['auto']).map((m) => <option key={m} value={m}>{m}</option>)}
+                        <option value="__custom__">custom…</option>
+                      </select>
+                    </label>
+                    {isCustomOpen && (
+                      <label className="field" style={{ flex: 2 }}>
+                        Custom model (provider/id)
+                        <input
+                          className="input"
+                          style={{ height: 34 }}
+                          placeholder="e.g. opencode-go/glm-5.3-flash"
+                          value={customModel}
+                          onChange={(e) => setCustomModel(e.target.value)}
+                        />
+                      </label>
+                    )}
+                    {isCustomOpen && (
+                      <button className="btn sm" style={{ alignSelf: 'flex-end' }} onClick={() => void applyModel(h.id, h.name, customModel)}>
+                        Apply
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 

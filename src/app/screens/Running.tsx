@@ -123,7 +123,7 @@ export default function Running() {
         )}
       </div>
       <p className="lede mono small" style={{ marginTop: 0 }}>
-        {cfg.source} · {cfg.head} → {cfg.base}
+        {cfg.source} · {cfg.head}{cfg.base ? ` → ${cfg.base}` : ' (full folder)'}
       </p>
 
       {stats && (

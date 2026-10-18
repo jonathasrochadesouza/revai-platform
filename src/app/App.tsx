@@ -1,5 +1,5 @@
 // revai — app shell (sidebar, topbar, ⌘K, shortcuts) + routes
-import { useCallback, useEffect, useState, useContext } from 'react'
+import { useCallback, useEffect, useState, useContext, useSyncExternalStore } from 'react'
 import { Outlet, createBrowserRouter, useLocation, useNavigate, NavLink, Link } from 'react-router-dom'
 import { Icon, ToastCtx, ToastHost, GateBadge } from './ui'
 import { get } from './api'
@@ -15,9 +15,29 @@ import Settings from './screens/Settings'
 import States from './screens/States'
 
 // ── theme ─────────────────────────────────────────────────────────────────
-export function setTheme(mode: 'dark' | 'light') {
+// Reactive store: writes DOM + localStorage and notifies subscribers, so the
+// Shell re-renders on every toggle (the old render-time DOM read stayed stale
+// and the second toggle recomputed the same value — nothing changed).
+type Theme = 'dark' | 'light'
+const themeListeners = new Set<() => void>()
+
+export function getTheme(): Theme {
+  return (document.documentElement.dataset.theme as Theme) ?? 'dark'
+}
+
+export function setTheme(mode: Theme) {
   document.documentElement.dataset.theme = mode
   localStorage.setItem('revai-theme', mode)
+  for (const l of themeListeners) l()
+}
+
+export function toggleTheme() {
+  setTheme(getTheme() === 'dark' ? 'light' : 'dark')
+}
+
+function subscribeTheme(l: () => void): () => void {
+  themeListeners.add(l)
+  return () => { themeListeners.delete(l) }
 }
 
 // ── ⌘K palette ────────────────────────────────────────────────────────────
@@ -40,8 +60,7 @@ function Palette({ open, onClose }: { open: boolean; onClose: () => void }) {
     {
       icon: 'moon', label: 'Toggle theme', kbd: 'T',
       go: () => {
-        const cur = (document.documentElement.dataset.theme as 'dark' | 'light') ?? 'dark'
-        setTheme(cur === 'dark' ? 'light' : 'dark')
+        toggleTheme()
         toast('Theme toggled', 'ok')
       },
     },
@@ -119,7 +138,7 @@ function Shell() {
   const loc = useLocation()
   const nav = useNavigate()
   const [paletteOpen, setPaletteOpen] = useState(false)
-  const theme = (document.documentElement.dataset.theme as 'dark' | 'light') ?? 'dark'
+  const theme = useSyncExternalStore(subscribeTheme, getTheme)
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -131,14 +150,19 @@ function Shell() {
         return
       }
       if (e.key === 'Escape') setPaletteOpen(false)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') {
+        e.preventDefault()
+        nav('/')
+        return
+      }
       if (typing) return
       if (e.key.toLowerCase() === 'n') {
         e.preventDefault()
         nav('/new')
       }
-      if (e.key.toLowerCase() === 't') setTheme(theme === 'dark' ? 'light' : 'dark')
+      if (e.key.toLowerCase() === 't') toggleTheme()
     },
-    [nav, theme],
+    [nav],
   )
 
   useEffect(() => {
@@ -161,7 +185,7 @@ function Shell() {
           <Icon name="plus" /> New review <kbd>N</kbd>
         </NavLink>
         <NavLink to="/" className="nav-item" aria-current={loc.pathname === '/' || loc.pathname.startsWith('/report') || loc.pathname.startsWith('/fix') ? 'page' : undefined}>
-          <Icon name="list" /> Reviews <kbd>G</kbd>
+          <Icon name="list" /> Reviews <kbd>Ctrl G</kbd>
         </NavLink>
         <div className="nav-sep" />
         <div className="nav-label">Environment</div>
@@ -183,7 +207,7 @@ function Shell() {
           <button className="btn sm" onClick={() => setPaletteOpen(true)} aria-label="Open command palette">
             <Icon name="search" /> Search <kbd>Ctrl K</kbd>
           </button>
-          <button className="btn ghost sm" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle theme">
+          <button className="btn ghost sm" onClick={toggleTheme} aria-label="Toggle theme">
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
           </button>
         </header>

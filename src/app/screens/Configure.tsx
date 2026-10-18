@@ -66,7 +66,7 @@ export default function Configure() {
         toast(`Validating ${target.name} before starting…`)
         await post('/harnesses/validate', { id: target.id })
       }
-      saveRun({ source, head, base, harnessId: target.id })
+      saveRun({ source, head, base, harnessId: target.id, model: target.model })
       toast(`Review started with ${target.name}`, 'ok')
       nav('/running')
     } catch (e: any) {
@@ -106,6 +106,7 @@ export default function Configure() {
     )
   }
 
+  const isFullFolder = prepared.refKind === 'folder-full'
   const files = prepared.files.filter((f) => !f.ignored)
   const maxDelta = Math.max(1, ...files.map((f) => f.added + f.removed))
 
@@ -119,24 +120,39 @@ export default function Configure() {
       <div className="report-grid">
         <div className="col" style={{ gap: 20 }}>
           <div className="card pad col">
-            <div className="grid-2">
-              <label className="field">
-                branch (head)
-                <select className="select" value={head} onChange={(e) => setHead(e.target.value)}>
-                  {[prepared.head, ...prepared.branches.filter((b) => b !== prepared.head)].map((b) => (
-                    <option key={b} value={b}>{b}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                base
-                <select className="select" value={base} onChange={(e) => setBase(e.target.value)}>
-                  {prepared.baseSuggestions.map((b) => (
-                    <option key={b} value={b}>{b}{b === prepared.base ? ' (auto)' : ''}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
+            {isFullFolder ? (
+              <div className="callout warn" style={{ margin: 0 }}>
+                <Icon name="alert" />
+                <span className="small">
+                  <b>Not a git repository</b> — full-folder review: every file is analyzed, without comparing changes against a base.
+                </span>
+              </div>
+            ) : (
+              <div className="fields-col">
+                {prepared.warning && (
+                  <div className="callout warn" style={{ margin: 0 }}>
+                    <Icon name="alert" />
+                    <span className="small">{prepared.warning}</span>
+                  </div>
+                )}
+                <label className="field">
+                  branch (head)
+                  <select className="select" value={head} onChange={(e) => setHead(e.target.value)}>
+                    {[prepared.head, ...prepared.branches.filter((b) => b !== prepared.head)].map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  base
+                  <select className="select" value={base} onChange={(e) => setBase(e.target.value)}>
+                    {prepared.baseSuggestions.map((b) => (
+                      <option key={b} value={b}>{b}{b === prepared.base ? ' (auto)' : ''}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
             {!!prepared.commits && (
               <div className="small muted num">
                 {prepared.commits} commit(s) {prepared.lastCommitAuthor ? `· last by ${prepared.lastCommitAuthor}` : ''}
@@ -145,7 +161,7 @@ export default function Configure() {
           </div>
 
           <div className="card pad col">
-            <b className="small">{prepared.filesChanged} file(s) changed</b>
+            <b className="small">{isFullFolder ? `${prepared.filesChanged} file(s) in folder` : `${prepared.filesChanged} file(s) changed`}</b>
             {files.slice(0, 9).map((f) => (
               <div key={f.path} className="frow">
                 <span className="path mono">{f.path}</span>
@@ -177,12 +193,13 @@ export default function Configure() {
             <span className={`dot ${runner?.status === 'ready' ? 'ok' : 'off'}`} />
             <b>{runner?.name ?? 'no runner'}</b>
             {runner?.version && <span className="mono num faint">{runner.version}</span>}
+            {runner?.modelName && <span className="mono num faint">{runner.modelName}</span>}
             <span className="faint">runs this review · {runner?.status === 'ready' ? 'validated' : 'validates on start'}</span>
           </div>
 
           <div className="card pad">
             <dl className="kv" style={{ gridTemplateColumns: '92px 1fr' }}>
-              <dt>Scope</dt><dd>Changed lines only</dd>
+              <dt>Scope</dt><dd>{isFullFolder ? 'Full folder — no base' : 'Changed lines only'}</dd>
               <dt>Playbooks</dt><dd>{prepared.languages.join(', ') || 'General'}</dd>
               <dt>Time</dt><dd className="num">~{fmtDur(prepared.estimateMs)}</dd>
             </dl>

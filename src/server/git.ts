@@ -102,6 +102,10 @@ export async function detectBase(
 
 const LOCKFILE_RE = /(^|\/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|Cargo\.lock|poetry\.lock|go\.sum|composer\.lock|packages\.lock\.json)$/
 
+export function isLockfile(p: string): boolean {
+  return LOCKFILE_RE.test(p)
+}
+
 export async function diffNumstat(dir: string, range: string[]): Promise<{ files: FileStat[]; additions: number; deletions: number }> {
   const r = await git(['diff', '--no-color', '--no-ext-diff', '--numstat', ...range], dir, 120_000)
   return parseNumstat(r.stdout)

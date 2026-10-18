@@ -3,10 +3,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { parseSource } from '../shared/urls'
-import { computeGate } from '../shared/gate'
+import { computeGate, PRIORITY_MAP } from '../shared/gate'
 import type { Finding, ReviewMeta, ReviewRecord, RunReviewBody, SseEvent, StepId } from '../shared/types'
 import { stream, type RunHandle } from './proc'
 import { AppError } from './errors'
+import { slugify } from '../shared/slug'
 import * as skill from './skill'
 import * as proj from './projects'
 import * as h from './harnesses'
@@ -33,28 +34,54 @@ export function buildReviewPrompt(o: {
   slug: string
   head: string
   base: string
-  skillPath: string
+  skillPath: string // '' → inline baseline (skill not installed)
   languages: string[]
   filesChanged: number
   additions: number
   deletions: number
+  fullFolder?: boolean // folder-full review: whole project in scope, no patch
+  scopePath?: string // full-folder: file manifest instead of the patch
 }): string {
   const sep = path.sep
-  const patchPath = `${o.repoDir}${sep}.revai${sep}data${sep}${o.slug}.patch`
   const focus = o.languages.length ? o.languages.join(', ') : 'general'
+
+  const scopeLines = o.fullFolder
+    ? [
+        `Scope: FULL-FOLDER review — the source is not a git repository, so there is no patch; every file is in scope.`,
+        `  File manifest: ${o.scopePath}`,
+      ]
+    : [
+        `Patch (ONLY '+' and '−' lines are in scope):`,
+        `  ${o.repoDir}${sep}.revai${sep}data${sep}${o.slug}.patch`,
+      ]
+
+  const readFirst = o.skillPath
+    ? [
+        `Read first:`,
+        `  ${o.skillPath}${sep}SKILL.md`,
+        `  ${o.skillPath}${sep}references${sep}rubric.md`,
+        `  ${o.skillPath}${sep}references${sep}stack-playbooks.md (focus: ${focus})`,
+        `  project overrides if present: ${o.repoDir}${sep}.revai${sep}rules.md (supersedes baseline) — also consult CODING_STANDARDS.md / CONTRIBUTING.md when present.`,
+      ]
+    : [
+        `The revai skill is not installed — follow this baseline instead:`,
+        `  Look for security, performance, stability and data-integrity issues (focus: ${focus}).`,
+        `  Severity: critical (must fix) / major (should fix) / minor / trivial. Effort: quick-win | estimated | significant.`,
+        `  Project overrides if present: ${o.repoDir}${sep}.revai${sep}rules.md (supersedes baseline) — also consult CODING_STANDARDS.md / CONTRIBUTING.md when present.`,
+      ]
+
+  const headLine = o.fullFolder
+    ? `Full folder: ${o.head} — ${o.filesChanged} files (${o.additions} lines). Prioritize the most impactful issues; do not pad the report.`
+    : `Head: ${o.head} (base: ${o.base}) — ${o.filesChanged} files, +${o.additions} −${o.deletions}.`
+
   return [
     `You are executing the "revai" code-review skill end-to-end.`,
     ``,
-    `Patch (ONLY '+' and '−' lines are in scope):`,
-    `  ${patchPath}`,
+    ...scopeLines,
     ``,
-    `Read first:`,
-    `  ${o.skillPath}${sep}SKILL.md`,
-    `  ${o.skillPath}${sep}references${sep}rubric.md`,
-    `  ${o.skillPath}${sep}references${sep}stack-playbooks.md (focus: ${focus})`,
-    `  project overrides if present: ${o.repoDir}${sep}.revai${sep}rules.md (supersedes baseline) — also consult CODING_STANDARDS.md / CONTRIBUTING.md when present.`,
+    ...readFirst,
     ``,
-    `Head: ${o.head} (base: ${o.base}) — ${o.filesChanged} files, +${o.additions} −${o.deletions}.`,
+    headLine,
     ``,
     `Deliverables — write ONLY these two files (schema V2, valid JSON):`,
     `  ${o.repoDir}${sep}.revai${sep}data${sep}${o.slug}-review.json   (array of findings)`,
@@ -65,6 +92,23 @@ export function buildReviewPrompt(o: {
     `You MAY read repo files for context. You MUST NOT modify project files (except the two JSONs above). Do not commit.`,
     `Finish with a 3-line terminal summary of findings (no report markup).`,
   ].join('\n')
+}
+
+/** lightweight in-platform schema check — used when the skill's validator is unavailable (no skill / full-folder) */
+function validateFindingsSchema(findings: Finding[], meta: ReviewMeta): void {
+  const bad = (msg: string) => new AppError('schema/validation', 'Schema V2 validation failed — nothing is generated until it passes', msg)
+  if (!Array.isArray(findings) || findings.length === 0) throw bad('review.json must be a non-empty array of findings')
+  if (!meta || typeof meta !== 'object' || !Array.isArray(meta.files)) throw bad('meta.json must be an object with author, reviewer, branch, walkthrough, files[]')
+  for (const f of findings) {
+    if (!f.id || !f.title || !f.description || !f.file || !f.lines) {
+      throw bad(`finding ${f.id ?? '(no id)'} is missing id/title/description/file/lines`)
+    }
+    const sev = f.severity ?? (f.priority ? PRIORITY_MAP[f.priority] : undefined)
+    if (!sev) throw bad(`finding ${f.id}: severity must be critical|major|minor|trivial`)
+    if (f.category && !['security', 'performance', 'stability', 'data-integrity'].includes(f.category)) {
+      throw bad(`finding ${f.id}: category "${f.category}" is not security|performance|stability|data-integrity`)
+    }
+  }
 }
 
 export async function runReview(send: Send, cfg: RunReviewBody, jobId: string, jobs: JobRegistry): Promise<void> {
@@ -83,16 +127,63 @@ export async function runReview(send: Send, cfg: RunReviewBody, jobId: string, j
     const prepared = await proj.prepare(parsed, (l) => send({ t: 'log', stream: 'git', line: l }))
     await step('done', prepared.repoDir)
 
-    // 2. Generate patch
+    // 2. Generate patch — full-folder: scope manifest; git: skill/built-in diff.
+    //    Empty diff vs base is not an error: it degrades to a full-folder review.
     currentStep = 'patch'
     await step('running')
-    await send({ t: 'log', stream: 'script', line: '$ node revai.mjs diff --current' })
-    const diff = await skill.runDiff(prepared.repoDir)
-    void send({ t: 'log', stream: 'script', line: `${diff.slug} · ${diff.filesChanged} files · +${diff.additions} −${diff.deletions}` })
+    let isFullFolder = prepared.refKind === 'folder-full'
+    let diff: skill.DiffOutput | null = null
+    if (!isFullFolder) {
+      try {
+        if (skill.skillAvailable()) {
+          await send({ t: 'log', stream: 'script', line: '$ node revai.mjs diff --current' })
+          diff = await skill.runDiff(prepared.repoDir)
+        } else {
+          await send({ t: 'log', stream: 'script', line: 'revai skill not found — using the built-in diff fallback' })
+          diff = await skill.fallbackDiff(prepared.repoDir, slugify(prepared.headBranch), prepared.base, prepared.headBranch)
+        }
+        if (diff.filesChanged === 0) diff = null // empty vs base → degrade below
+      } catch (e) {
+        if ((e as AppError).code === 'repo/empty-diff') diff = null
+        else throw e
+      }
+      if (!diff) {
+        await send({ t: 'log', stream: 'script', line: 'no changes between base and head — falling back to a full-folder review' })
+      }
+    }
+    if (!diff) {
+      // full-folder scope manifest (source without git, or empty diff vs base)
+      isFullFolder = true
+      const fullFiles = proj.walkFullFolder(prepared.repoDir)
+      const slug = slugify(prepared.label)
+      const dataDir = path.join(prepared.repoDir, '.revai', 'data')
+      fs.mkdirSync(dataDir, { recursive: true })
+      const scopePath = path.join(dataDir, `${slug}-scope.txt`)
+      fs.writeFileSync(
+        scopePath,
+        fullFiles.filter((f) => !f.ignored).map((f) => `${f.path}\t${f.added} lines`).join('\n') + '\n',
+        'utf8',
+      )
+      diff = {
+        slug,
+        patchPath: scopePath,
+        filesChanged: fullFiles.filter((f) => !f.ignored).length,
+        additions: fullFiles.reduce((s, f) => s + (f.ignored ? 0 : f.added), 0),
+        deletions: 0,
+      }
+      await send({ t: 'log', stream: 'script', line: `full-folder scope → ${scopePath}` })
+    }
+    if (isFullFolder) {
+      void send({ t: 'log', stream: 'script', line: `${diff.slug} · ${diff.filesChanged} files (full folder, ${diff.additions} lines)` })
+    } else {
+      void send({ t: 'log', stream: 'script', line: `${diff.slug} · ${diff.filesChanged} files · +${diff.additions} −${diff.deletions}` })
+    }
     await send({ t: 'stats', filesChanged: diff.filesChanged, additions: diff.additions, deletions: diff.deletions, slug: diff.slug, patchPath: diff.patchPath })
     await step('done')
 
-    if (diff.filesChanged === 0) throw guard('repo/empty-diff', 'No changes between base and head')
+    if (diff.filesChanged === 0) {
+      throw guard('repo/empty-diff', 'No reviewable files found in the folder')
+    }
 
     // 3. Analyze changes (harness)
     currentStep = 'analyze'
@@ -103,11 +194,13 @@ export async function runReview(send: Send, cfg: RunReviewBody, jobId: string, j
       slug: diff.slug,
       head: prepared.head,
       base: prepared.base,
-      skillPath: skill.skillDir(),
+      skillPath: skill.findSkillDir(),
       languages: prepared.languages,
-      filesChanged: prepared.filesChanged,
-      additions: prepared.additions,
-      deletions: prepared.deletions,
+      filesChanged: diff.filesChanged,
+      additions: diff.additions,
+      deletions: diff.deletions,
+      fullFolder: isFullFolder,
+      scopePath: isFullFolder ? diff.patchPath : undefined,
     })
     const argv = h.finalArgv(inv, prompt)
     let agentHandle: RunHandle | null = null
@@ -162,11 +255,17 @@ export async function runReview(send: Send, cfg: RunReviewBody, jobId: string, j
     })
     await step('done', `${findings.length} findings`)
 
-    // 5. Validate schema (skill script — nothing is generated until it passes)
+    // 5. Validate schema — skill validator when available (git mode); in-platform check otherwise
     currentStep = 'validate'
     await step('running')
-    const gen = await skill.generateReview(prepared.repoDir, diff.slug)
-    await step('done', 'Report generated by the skill')
+    let gen: { htmlPath: string } = { htmlPath: '' }
+    if (!isFullFolder && skill.skillAvailable()) {
+      gen = await skill.generateReview(prepared.repoDir, diff.slug)
+      await step('done', 'Report generated by the skill')
+    } else {
+      validateFindingsSchema(findings, meta)
+      await step('done', isFullFolder ? 'Validated in-platform (full-folder review)' : 'Validated in-platform (skill not installed)')
+    }
 
     // 6. Assemble report
     currentStep = 'assemble'
@@ -174,9 +273,11 @@ export async function runReview(send: Send, cfg: RunReviewBody, jobId: string, j
     const gate = computeGate(findings, [])
     const dir = recordDir(id)
     fs.mkdirSync(dir, { recursive: true })
-    const copy = (src: string, name: string) => {
-      try { fs.copyFileSync(src, path.join(dir, name)) } catch { /* foo */ }
-      return name
+    const copy = (src: string, name: string): string | undefined => {
+      try {
+        fs.copyFileSync(src, path.join(dir, name))
+        return name
+      } catch { /* source missing — artifact stays absent */ return undefined }
     }
     const record: ReviewRecord = {
       id,
@@ -203,7 +304,8 @@ export async function runReview(send: Send, cfg: RunReviewBody, jobId: string, j
       skipped: [],
       gate,
       artifacts: {
-        patch: copy(diff.patchPath, 'review.patch'),
+        // full-folder has no patch — the scope manifest replaces it (kept out of artifacts on purpose)
+        patch: isFullFolder ? undefined : copy(diff.patchPath, 'review.patch'),
         html: gen.htmlPath ? copy(gen.htmlPath, 'review.html') : undefined,
         reviewJson: copy(reviewJsonPath, 'review.json'),
         metaJson: copy(metaJsonPath, 'meta.json'),
@@ -251,7 +353,7 @@ export async function patchFindingStatus(
   try {
     if (record.repo.dir && fs.existsSync(record.repo.dir)) {
       const reviewJsonPath = path.join(record.repo.dir, '.revai', 'data', `${record.slug}-review.json`)
-      if (fs.existsSync(reviewJsonPath)) {
+      if (fs.existsSync(reviewJsonPath) && skill.skillAvailable()) {
         fs.writeFileSync(reviewJsonPath, JSON.stringify(record.findings, null, 2) + '\n', 'utf8')
         const gen = await skill.generateReview(record.repo.dir, record.slug)
         if (gen.htmlPath) fs.copyFileSync(gen.htmlPath, path.join(recordDir(record.id), 'review.html'))
