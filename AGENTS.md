@@ -8,6 +8,7 @@ Reusable agent skills live in `.agents/skills/<skill-name>/SKILL.md`. When a req
 
 - Commit / push / stage tracked changes → [`.agents/skills/git-commit-push/SKILL.md`](.agents/skills/git-commit-push/SKILL.md)
 - Bump the version / prepare a release → [`.agents/skills/bump-version/SKILL.md`](.agents/skills/bump-version/SKILL.md) — tens-based patch ladder (+10/+20/+30, minor, major); `CHANGELOG.md` top section is the version source of truth
+- After a push, watch the GitHub Actions run → [`.agents/skills/watch-actions/SKILL.md`](.agents/skills/watch-actions/SKILL.md) — mandatory follow-up of git-commit-push (Step 8): watches the run for the pushed sha to completion and reports jobs, failed logs and, for release runs, the published release + assets
 
 Skill conventions (Agent Skills spec): folder name equals the `name` field (kebab-case); `description` states what the skill does and when it triggers; body in imperative voice, aiming for < 500 lines; optional `references/` (docs loaded on demand) and `scripts/` (executed, not read).
 

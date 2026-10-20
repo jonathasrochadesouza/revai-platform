@@ -1,6 +1,6 @@
 ---
 name: git-commit-push
-description: Commit and/or push the user's Git changes in this repository, preserving their staged vs. unstaged intent. This skill should be used when the user asks to "commit", "commita", "faz o commit", "create a commit", "stage and commit", "push", "push my changes", "commita e envia", "salva as alterações", or wants work-in-progress or staged changes turned into one or more commits. Runs the validation gate first, follows Conventional Commits, and never pushes unless the user explicitly asked in the same request. Do not use for creating PRs, issues, tags, or releases.
+description: Commit and/or push the user's Git changes in this repository, preserving their staged vs. unstaged intent. This skill should be used when the user asks to "commit", "commita", "faz o commit", "create a commit", "stage and commit", "push", "push my changes", "commita e envia", "salva as alterações", or wants work-in-progress or staged changes turned into one or more commits. Runs the validation gate first, follows Conventional Commits, and never pushes unless the user explicitly asked in the same request. After a successful push, always monitors the triggered GitHub Actions run via the watch-actions skill (Step 8). Do not use for creating PRs, issues, tags, or releases.
 ---
 
 # Git Commit & Push
@@ -103,6 +103,18 @@ Push is opt-in, never default. Exit here if the user did not say "push" in this 
 ✓ committed  <sha> <subject>
 ✓ pushed to origin/<branch>
 ```
+
+## Step 8 — Watch the CI run (mandatory after every push)
+
+A push is not done when `git push` returns: every push to `main` is a release
+candidate and any push can break CI. Immediately after a successful push,
+follow [`.agents/skills/watch-actions/SKILL.md`](../watch-actions/SKILL.md) —
+locate the Actions run for the pushed sha, watch it to completion and report
+the outcome (jobs; for release runs, the published release + assets). Never
+end the turn with the run still in progress: the run report is part of the
+push. If the run failed, summarize the root cause from `--log-failed` and
+propose the next fix — but do not auto-fix, re-run or push again unless the
+user asks.
 
 ## Failure handling
 
