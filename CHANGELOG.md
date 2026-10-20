@@ -9,6 +9,8 @@ with a repo-local tens-based patch ladder — rules in
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-20
+
 ### Added
 
 - watch-actions skill — after every push, the agent watches the GitHub Actions
@@ -131,7 +133,8 @@ with a repo-local tens-based patch ladder — rules in
 
 - Project translated to en-us (docs, UI strings and startup banner)
 
-[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.30...v1.2.0
 [1.1.30]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.20...v1.1.30
 [1.1.20]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.0...v1.1.20
