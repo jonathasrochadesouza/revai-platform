@@ -1,15 +1,15 @@
 <div align="center">
-  <img src="logo.png" alt="revai" width="120">
+  <img src="logo.png" alt="Revai Platform — local-first AI code review" width="120">
 
-# REVAI PLATFORM
+# Revai Platform
 
 **AI code review, running 100% on your machine using your harness.**
 
-[![status](https://img.shields.io/badge/status-mvp-facc15?labelColor=18181b)](#-getting-started) [![release](https://img.shields.io/github/v/release/jonathasrochadesouza/revai-platform?color=38bdf8&labelColor=18181b)](https://github.com/jonathasrochadesouza/revai-platform/releases/latest) [![node](https://img.shields.io/badge/node-%E2%89%A520.9-334155?labelColor=18181b)](https://nodejs.org) [![privacy](https://img.shields.io/badge/privacy-local_data-4ade80?labelColor=18181b)](#-data--privacy)
+[![status](https://img.shields.io/badge/status-mvp-facc15?labelColor=18181b)](#-getting-started) [![release](https://img.shields.io/github/v/release/jonathasrochadesouza/revai-platform?color=38bdf8&labelColor=18181b)](https://github.com/jonathasrochadesouza/revai-platform/releases/latest) [![license](https://img.shields.io/badge/license-MIT-4ade80?labelColor=18181b)](LICENSE) [![node](https://img.shields.io/badge/node-%E2%89%A520.9-334155?labelColor=18181b)](https://nodejs.org) [![privacy](https://img.shields.io/badge/privacy-local_data-4ade80?labelColor=18181b)](#-data--privacy)
 
 ---
 
-The platform is the **local host for the skill** [`jonathasrochadesouza/revai.git`](https://github.com/jonathasrochadesouza/revai.git): you point it at a remote repo (branch, PR, MR, commit) **or a local folder**, and the CLI agent on your machine runs the review with a UI.
+**Revai Platform** is a free, open-source **desktop app for local-first AI code review** on Windows, macOS and Linux. You point it at a GitHub/GitLab repository (branch, PR, MR, commit) **or a local folder**, and the AI coding agent already on your machine — Claude Code, Codex, Kiro CLI, OpenCode or GitHub Copilot — runs the review through a full UI: 5-step pipeline, Quality Gate, findings triage and an automated fix loop. Your code, diffs and rules never leave your computer; the platform is the local host for the [`revai` skill](https://github.com/jonathasrochadesouza/revai).
 
 </div>
 
@@ -160,6 +160,28 @@ Real captures of the running app (seeded demo data, disposable data dir) — ful
 - Nothing leaves your machine: the diff and the rules circulate only between the sandbox clone, the skill and your harness.
 - Nothing is written until schema V2 validates — direct inheritance from `generate-review.mjs`.
 - Commits only with your click: fixes stay unstaged; "create branch and push" is an explicit action.
+
+## ❓ FAQ
+
+**What is Revai Platform?**
+
+A free, open-source (MIT) desktop app that hosts AI-powered code review locally: it orchestrates the `revai` review skill end to end — resolve, clone, diff, review, report — and renders the result with a Quality Gate, findings triage and a fix loop.
+
+**How is it different from cloud code review tools?**
+
+Cloud SaaS reviewers ingest your code into their platform and run models you don't control. Revai Platform inverts that: the review runs **on your machine**, with the **AI agent CLI you already use and pay for**, against its own provider — the platform adds orchestration, UI and gate, not a middleman server.
+
+**Is my source code uploaded anywhere?**
+
+No. Clones live in `~/.revai`, the app ships with no telemetry and talks to no backend of its own. The only network calls in a review are the ones your chosen harness CLI makes to its own LLM provider.
+
+**Which AI agents can run the review?**
+
+Kiro CLI, Claude Code, Codex CLI, OpenCode and GitHub Copilot CLI today (invocation table above); each is discovered and validated at onboarding, with per-harness model selection in Settings.
+
+**How much does it cost?**
+
+The app is free (MIT license). You only cover the usage of your own agent harness/LLM account.
 
 ## 🗂️ Structure
 

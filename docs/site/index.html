@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Revai Platform — Local-first AI Code Review for Windows, macOS &amp; Linux</title>
+  <meta name="description" content="Revai Platform is a free, open-source desktop app that runs AI code review 100% locally: your repos, your AI agent harness (Claude Code, Codex, Kiro CLI, OpenCode, Copilot), a Quality Gate and a fix loop — no code leaves your machine.">
+  <link rel="canonical" href="https://jonathasrochadesouza.github.io/revai-platform/">
+  <meta name="theme-color" content="#18181b">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Revai Platform">
+  <meta property="og:title" content="Revai Platform — Local-first AI Code Review">
+  <meta property="og:description" content="Run AI code review on your machine with your own agent harness (Claude Code, Codex, Kiro CLI, OpenCode, Copilot). Free, open source, Windows / macOS / Linux.">
+  <meta property="og:url" content="https://jonathasrochadesouza.github.io/revai-platform/">
+  <meta property="og:image" content="https://jonathasrochadesouza.github.io/revai-platform/assets/social-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Revai Platform — Local-first AI Code Review">
+  <meta name="twitter:description" content="AI code review on your machine, with your own agent harness. Free, open source, Windows / macOS / Linux.">
+  <meta name="twitter:image" content="https://jonathasrochadesouza.github.io/revai-platform/assets/social-card.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Revai Platform",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Windows, macOS, Linux",
+    "description": "Local-first AI code review desktop app: runs the revai review skill on your machine with your own AI agent harness (Claude Code, Codex, Kiro CLI, OpenCode, Copilot), with a Quality Gate and an automated fix loop. No code leaves your computer.",
+    "url": "https://jonathasrochadesouza.github.io/revai-platform/",
+    "downloadUrl": "https://github.com/jonathasrochadesouza/revai-platform/releases/latest",
+    "author": {
+      "@type": "Person",
+      "name": "Jonathas Rocha de Souza",
+      "url": "https://github.com/jonathasrochadesouza"
+    },
+    "license": "https://github.com/jonathasrochadesouza/revai-platform/blob/main/LICENSE",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <style>
+    :root { --bg: #18181b; --panel: #1f1f23; --line: #2e2e33; --fg: #fafafa; --muted: #a1a1aa; --yellow: #facc15; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font: 16px/1.6 "Segoe UI", system-ui, -apple-system, sans-serif; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+    a { color: var(--yellow); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
+    nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--fg); }
+    nav img { width: 30px; height: 30px; }
+    header.hero { text-align: center; padding: 64px 0 48px; }
+    header.hero img.mark { width: 120px; height: 120px; }
+    header.hero h1 { font-size: 44px; margin: 16px 0 8px; }
+    header.hero p.tag { color: var(--yellow); font-weight: 700; font-size: 20px; margin-bottom: 10px; }
+    header.hero p.sub { color: var(--muted); max-width: 640px; margin: 0 auto 28px; }
+    .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn { display: inline-block; padding: 10px 22px; border-radius: 8px; font-weight: 700; border: 2px solid var(--yellow); }
+    .btn.primary { background: var(--yellow); color: #18181b; }
+    .btn.ghost { color: var(--yellow); }
+    section { padding: 40px 0; border-top: 1px solid var(--line); }
+    h2 { font-size: 26px; margin-bottom: 18px; }
+    h3 { font-size: 17px; color: var(--yellow); margin: 16px 0 4px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+    .card b { color: var(--yellow); }
+    ol.steps { margin-left: 22px; }
+    ol.steps li { margin: 8px 0; }
+    ol.steps b { color: var(--yellow); }
+    .downloads { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    footer { border-top: 1px solid var(--line); padding: 26px 0 40px; color: var(--muted); text-align: center; font-size: 14px; }
+    .note { color: var(--muted); font-size: 14px; margin-top: 14px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="./"><img src="assets/logo.png" alt="Revai Platform logo"> Revai Platform</a>
+      <a href="https://github.com/jonathasrochadesouza/revai-platform">GitHub ↗</a>
+    </nav>
+
+    <header class="hero">
+      <img class="mark" src="assets/logo.png" alt="Revai Platform — the local-first AI code review desktop app">
+      <h1>Revai Platform</h1>
+      <p class="tag">AI code review, 100% on your machine, with your own agent harness.</p>
+      <p class="sub">Free, open-source desktop app for <strong>local-first AI code review</strong>: point it at a GitHub/GitLab repository or a local folder, and the AI coding agent already on your machine runs the review — Quality Gate, findings triage and an automated fix loop included. Your code never leaves your computer.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/jonathasrochadesouza/revai-platform/releases/latest">Download for Windows / macOS / Linux</a>
+        <a class="btn ghost" href="https://github.com/jonathasrochadesouza/revai-platform">Source on GitHub</a>
+      </div>
+      <p class="note">Windows · macOS (Apple Silicon) · Linux (AppImage / deb) — MIT licensed</p>
+    </header>
+
+    <section>
+      <h2>What you get</h2>
+      <div class="grid">
+        <div class="card"><b>5-step pipeline</b><br>resolve → clone → diff → skill → report, streamed live in the UI</div>
+        <div class="card"><b>Quality Gate</b><br>the review fails only with an open critical finding — no silent passes</div>
+        <div class="card"><b>Fix loop</b><br>apply the fix, run the tests and see the Gate delta before any commit</div>
+        <div class="card"><b>Your harness</b><br>Claude Code, Codex, Kiro CLI, OpenCode or GitHub Copilot — your accounts, your models</div>
+        <div class="card"><b>100% local</b><br>no telemetry, no middleman server; data lives in <code>~/.revai</code></div>
+        <div class="card"><b>Any source</b><br>branch, PR, MR, commit or a plain local folder without a git repo</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>How it works</h2>
+      <ol class="steps">
+        <li><b>Resolve</b> — paste a GitHub/GitLab URL (tree, <code>pull/482</code>, <code>merge-requests/12</code>, <code>@sha</code>) or pick a local folder.</li>
+        <li><b>Clone &amp; diff</b> — the repo is cloned into <code>~/.revai/repos</code> and diffed against the base (<code>origin/HEAD</code> + merge-base).</li>
+        <li><b>Review</b> — your agent harness receives the patch scope and project rules via stdin and writes findings into the clone.</li>
+        <li><b>Validate</b> — findings must pass the review schema; failures show the real error instead of a fake report.</li>
+        <li><b>Report &amp; fix</b> — triage findings, send blockers to the fix loop, commit only when you say so.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>FAQ</h2>
+      <h3>What is Revai Platform?</h3>
+      <p>A free, open-source (MIT) desktop app that hosts AI-powered code review locally: it orchestrates the <code>revai</code> review skill end to end and renders the result with a Quality Gate, findings triage and a fix loop.</p>
+      <h3>How is it different from cloud code review tools?</h3>
+      <p>Cloud SaaS reviewers ingest your code into their platform and run models you don't control. Revai Platform inverts that: the review runs on your machine, with the AI agent CLI you already use and pay for, against its own provider — the platform adds orchestration, UI and gate, not a middleman server.</p>
+      <h3>Is my source code uploaded anywhere?</h3>
+      <p>No. Clones live in <code>~/.revai</code>, the app ships with no telemetry and talks to no backend of its own. The only network calls in a review are the ones your chosen harness CLI makes to its own LLM provider.</p>
+      <h3>Which AI agents can run the review?</h3>
+      <p>Kiro CLI, Claude Code, Codex CLI, OpenCode and GitHub Copilot CLI today; each is discovered and validated at onboarding, with per-harness model selection in Settings.</p>
+      <h3>How much does it cost?</h3>
+      <p>The app is free (MIT license). You only cover the usage of your own agent harness/LLM account.</p>
+    </section>
+
+    <section>
+      <h2>Download</h2>
+      <div class="downloads">
+        <div class="card"><b>Windows</b><br>installer <code>revai-platform-&lt;v&gt;-setup.exe</code> or portable zip — from the <a href="https://github.com/jonathasrochadesouza/revai-platform/releases/latest">latest release</a></div>
+        <div class="card"><b>macOS (Apple Silicon)</b><br><code>revai-platform-&lt;v&gt;-arm64.dmg</code> — from the <a href="https://github.com/jonathasrochadesouza/revai-platform/releases/latest">latest release</a></div>
+        <div class="card"><b>Linux</b><br><code>.AppImage</code> / <code>.deb</code> — from the <a href="https://github.com/jonathasrochadesouza/revai-platform/releases/latest">latest release</a></div>
+      </div>
+      <p class="note">Requires Git and at least one agent harness CLI on your PATH. Builds are unsigned for now — expect SmartScreen/Gatekeeper warnings.</p>
+    </section>
+
+    <footer>
+      <a href="https://github.com/jonathasrochadesouza/revai-platform">github.com/jonathasrochadesouza/revai-platform</a> · MIT License · built by <a href="https://github.com/jonathasrochadesouza">@jonathasrochadesouza</a>
+    </footer>
+  </div>
+</body>
+</html>

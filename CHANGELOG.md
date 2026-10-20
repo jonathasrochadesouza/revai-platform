@@ -11,6 +11,15 @@ with a repo-local tens-based patch ladder — rules in
 
 ### Added
 
+- watch-actions skill — after every push, the agent watches the GitHub Actions
+  run for the pushed sha to completion and reports jobs, failed logs and, for
+  release runs, the published release + assets; wired into git-commit-push as
+  a mandatory Step 8 so a push is never considered done unwatched
+- SEO & AI-discovery surface: GitHub About description + topics, MIT `LICENSE`,
+  social card (`docs/social-card.png`), Security Policy and a landing page at
+  `docs/site/` deployed to GitHub Pages by the new `pages` workflow (meta/OG
+  tags, `SoftwareApplication` JSON-LD, sitemap, robots.txt, llms.txt); README
+  gains an answer-first definition and an FAQ
 - merge-all-prs skill — batch-merge every open PR into `main` with a single
   aggregated version bump and one green release: preflight + explicit user
   confirmation, sequential `gh pr merge --delete-branch`, bump-version over

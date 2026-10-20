@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jonathasrochadesouza.github.io/revai-platform/sitemap.xml
