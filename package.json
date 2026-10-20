@@ -1,6 +1,6 @@
 {
   "name": "revai-platform",
-  "version": "1.3.30",
+  "version": "1.3.40",
   "private": true,
   "author": "Jonathas Rocha de Souza",
   "type": "module",

@@ -9,6 +9,25 @@ with a repo-local tens-based patch ladder — rules in
 
 ## [Unreleased]
 
+## [1.3.40] - 2026-10-20
+
+### Fixed
+
+- reviews on a git folder failed at "Generate patch" with `diff/failed: diff
+  returned no artifacts` when run from the packaged desktop app: the skill
+  scripts were spawned with `process.execPath` — the Electron binary, not
+  node — which fails the app's single-instance lock and silently exits 0 with
+  no output; `exec`/`stream` now accept extra env and the skill spawns pass
+  `ELECTRON_RUN_AS_NODE=1` (proven against the installed binary: red without,
+  green with), regression-tested at the spawn seam
+- Settings → "Save changes" flipped the UI back to the stored theme: saving
+  the Runner tab while browsing in light (toolbar/T toggle) reapplied the
+  value from settings.json; the theme applies when picked, save only persists
+
+### Changed
+
+- `.playwright-mcp/` (browser-testing artifacts) ignored by git
+
 ## [1.3.30] - 2026-10-20
 
 ### Added
@@ -153,7 +172,8 @@ with a repo-local tens-based patch ladder — rules in
 
 - Project translated to en-us (docs, UI strings and startup banner)
 
-[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.3.30...HEAD
+[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.3.40...HEAD
+[1.3.40]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.3.30...v1.3.40
 [1.3.30]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.3.0...v1.3.30
 [1.3.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.30...v1.2.0
