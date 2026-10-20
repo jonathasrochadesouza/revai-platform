@@ -9,6 +9,26 @@ with a repo-local tens-based patch ladder — rules in
 
 ## [Unreleased]
 
+## [1.3.30] - 2026-10-20
+
+### Added
+
+- version shown in the system is now automatic — `package.json` is the single
+  source of truth: the header badge gets `__APP_VERSION__` injected at build
+  time by vite `define` and `/health` reads the file at runtime (new
+  `src/server/version.ts`), so bumps always propagate; no more hardcoded
+  `v1.0` / `0.1.0` drift
+
+### Fixed
+
+- Windows "Choose folder…" failed with a PowerShell `ParserError:
+  UnexpectedToken` (surfaced as `internal/error` in the UI): the no-startIn
+  default (`[Environment]::GetFolderPath('UserProfile')`) was interpolated
+  inside a single-quoted string, closing it early; the script now assigns a
+  `$start` variable in-script (literal path with doubled quotes, bare
+  expression otherwise). Validated end-to-end in Chrome via Playwright with
+  the native dialog driven through UI Automation
+
 ## [1.3.0] - 2026-10-20
 
 ### Added
@@ -133,7 +153,8 @@ with a repo-local tens-based patch ladder — rules in
 
 - Project translated to en-us (docs, UI strings and startup banner)
 
-[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.3.30...HEAD
+[1.3.30]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.3.0...v1.3.30
 [1.3.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.30...v1.2.0
 [1.1.30]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.20...v1.1.30
