@@ -1,0 +1,9 @@
+# Revai Platform
+
+> Local-first AI code review desktop app for Windows, macOS and Linux. Revai Platform runs the revai review skill on your machine with your own AI agent harness (Claude Code, Codex, Kiro CLI, OpenCode, GitHub Copilot), with a Quality Gate, findings triage and an automated fix loop. Free, open source (MIT). No code leaves your computer.
+
+- [Home](https://jonathasrochadesouza.github.io/revai-platform/): product overview, FAQ and download links
+- [GitHub repository](https://github.com/jonathasrochadesouza/revai-platform): source code, issues and releases
+- [Latest release](https://github.com/jonathasrochadesouza/revai-platform/releases/latest): installers and portable builds (setup.exe, portable zip, dmg, AppImage, deb)
+- [CHANGELOG](https://github.com/jonathasrochadesouza/revai-platform/blob/main/CHANGELOG.md): release notes for every version
+- [README](https://github.com/jonathasrochadesouza/revai-platform#readme): full documentation (pipeline, harnesses, shortcuts, data layout)

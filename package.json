@@ -2,9 +2,23 @@
   "name": "revai-platform",
   "version": "1.2.0",
   "private": true,
-  "author": "revai",
+  "author": "Jonathas Rocha de Souza",
   "type": "module",
-  "description": "The local host for the revai skill: the same 5-step flow and data contract (schema V2, Quality Gate, fix loop) with remote repos and local harness selection/validation.",
+  "description": "Local-first AI code review desktop app - run AI code review on your machine with your own agent harness (Claude Code, Codex, Kiro CLI, OpenCode, Copilot). Windows, macOS & Linux.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonathasrochadesouza/revai-platform.git"
+  },
+  "keywords": [
+    "ai-code-review",
+    "code-review",
+    "local-first",
+    "llm",
+    "ai-agents",
+    "electron",
+    "developer-tools"
+  ],
   "main": "electron/main.cjs",
   "engines": {
     "node": ">=20.9"
