@@ -9,6 +9,13 @@ with a repo-local tens-based patch ladder — rules in
 
 ## [Unreleased]
 
+### Added
+
+- watch-actions skill — after every push, the agent watches the GitHub Actions
+  run for the pushed sha to completion and reports jobs, failed logs and, for
+  release runs, the published release + assets; wired into git-commit-push as
+  a mandatory Step 8 so a push is never considered done unwatched
+
 ## [1.2.0] - 2026-10-20
 
 ### Added
