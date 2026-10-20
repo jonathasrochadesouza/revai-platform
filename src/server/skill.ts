@@ -67,11 +67,18 @@ export interface DiffOutput {
   deletions: number
 }
 
+/** In the packaged Electron app process.execPath is the Electron binary, not node —
+ *  spawning it a second time fails the single-instance lock and silently exits 0 with
+ *  no output, so the diff "returned no artifacts". ELECTRON_RUN_AS_NODE makes the same
+ *  binary run plain Node; harmless when execPath already is node (dev/tsx). */
+const RUN_AS_NODE = { ELECTRON_RUN_AS_NODE: '1' }
+
 /** run `node revai.mjs diff --current` in the clone; returns artifact + stats */
 export async function runDiff(cloneDir: string): Promise<DiffOutput> {
   const r = await exec([process.execPath, path.join(skillDir(), 'scripts', 'revai.mjs'), 'diff', '--current'], {
     cwd: cloneDir,
     timeoutMs: 120_000,
+    env: RUN_AS_NODE,
   })
   if (r.code !== 0) {
     const emptyHint = /empty/i.test(r.stderr) || /nothing to review|sem mudanças/i.test(r.stderr)
@@ -108,6 +115,7 @@ export async function generateReview(cloneDir: string, slug: string, timeoutMs =
   const r = await exec([process.execPath, path.join(skillDir(), 'scripts', 'generate-review.mjs'), slug, '--no-open'], {
     cwd: cloneDir,
     timeoutMs,
+    env: RUN_AS_NODE,
   })
   if (r.code !== 0) {
     throw new AppError(

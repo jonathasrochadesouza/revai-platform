@@ -13,10 +13,10 @@ export interface ExecResult {
 
 const CAP = 2 * 1024 * 1024 // 2 MB per collected stream
 
-function spawnOpts() {
+function spawnOpts(extraEnv?: Record<string, string>) {
   const stdio: Array<'pipe'> = ['pipe', 'pipe', 'pipe']
   return {
-    env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GIT_PAGER: 'cat' },
+    env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GIT_PAGER: 'cat', ...extraEnv },
     windowsHide: true,
     // on unix, detached lets you kill the whole process group (-pid)
     detached: !isWin,
@@ -24,10 +24,17 @@ function spawnOpts() {
   }
 }
 
-export function exec(argv: string[], opts: { cwd?: string; timeoutMs?: number } = {}): Promise<ExecResult> {
+export interface ExecOptions {
+  cwd?: string
+  timeoutMs?: number
+  /** extra environment variables merged over the base spawn env */
+  env?: Record<string, string>
+}
+
+export function exec(argv: string[], opts: ExecOptions = {}): Promise<ExecResult> {
   return new Promise((resolve) => {
     const w = wrap(argv)
-    const child = spawn(w.cmd, w.args, { ...spawnOpts(), cwd: opts.cwd, windowsVerbatimArguments: w.verbatim })
+    const child = spawn(w.cmd, w.args, { ...spawnOpts(opts.env), cwd: opts.cwd, windowsVerbatimArguments: w.verbatim })
     let stdout = '', stderr = ''
     const cap = (acc: string, chunk: string) => (acc.length < CAP ? acc + chunk : acc)
     child.stdout?.on('data', (d) => { stdout = cap(stdout, d.toString()) })
@@ -46,6 +53,8 @@ export interface RunHandle {
 export interface StreamOptions {
   cwd?: string
   stdin?: string
+  /** extra environment variables merged over the base spawn env */
+  env?: Record<string, string>
   onLine?: (line: string, stream: 'out' | 'err') => void
   onSpawn?: (h: RunHandle) => void
   timeoutMs?: number
@@ -54,7 +63,7 @@ export interface StreamOptions {
 export function stream(argv: string[], opts: StreamOptions): Promise<ExecResult> {
   return new Promise((resolve) => {
     const w = wrap(argv)
-    const child: ChildProcess = spawn(w.cmd, w.args, { ...spawnOpts(), cwd: opts.cwd, windowsVerbatimArguments: w.verbatim })
+    const child: ChildProcess = spawn(w.cmd, w.args, { ...spawnOpts(opts.env), cwd: opts.cwd, windowsVerbatimArguments: w.verbatim })
     let stdout = '', stderr = '', timedOut = false
 
     const handle: RunHandle = {
