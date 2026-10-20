@@ -8,10 +8,14 @@ export async function pickFolder(startIn?: string): Promise<string | null> {
   const timeout = { timeoutMs: 300_000 }
 
   if (process.platform === 'win32') {
-    const start =
+    // $start is assigned INSIDE the script: a startIn path becomes a single-quoted literal
+    // (quotes doubled), while the no-startIn default is a bare PS expression. Interpolating
+    // the expression into `SelectedPath = '<...>'` used to emit `('[Environment]...('UserProfile')')`
+    // → the inner quotes closed the string early → ParserError: UnexpectedToken.
+    const startLine =
       startIn && fs.existsSync(startIn)
-        ? startIn.replace(/'/g, "''")
-        : "[Environment]::GetFolderPath('UserProfile')"
+        ? `$start = '${startIn.replace(/'/g, "''")}'`
+        : "$start = [Environment]::GetFolderPath('UserProfile')"
     // Visible owner (small, topmost) — without it the FolderBrowserDialog never paints
     // (a form never shown = an invisible modal that blocks forever).
     const script = [
@@ -30,7 +34,8 @@ export async function pickFolder(startIn?: string): Promise<string | null> {
       "$dialog = New-Object System.Windows.Forms.FolderBrowserDialog",
       "$dialog.Description = 'Choose the project folder (git repository)'",
       "$dialog.ShowNewFolderButton = $false",
-      `$dialog.SelectedPath = '${start}'`,
+      startLine,
+      "$dialog.SelectedPath = $start",
       "$res = $dialog.ShowDialog($form)",
       "$form.Close()",
       "if ($res -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $dialog.SelectedPath }",
