@@ -11,3 +11,6 @@ release/
 *.tsbuildinfo
 .env
 .DS_Store
+
+# artifacts do playwright MCP (snapshots/console de teste)
+.playwright-mcp/
