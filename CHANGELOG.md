@@ -9,6 +9,14 @@ with a repo-local tens-based patch ladder — rules in
 
 ## [Unreleased]
 
+### Added
+
+- SEO & AI-discovery surface: GitHub About description + topics, MIT `LICENSE`,
+  social card (`docs/social-card.png`), Security Policy and a landing page at
+  `docs/site/` deployed to GitHub Pages by the new `pages` workflow (meta/OG
+  tags, `SoftwareApplication` JSON-LD, sitemap, robots.txt, llms.txt); README
+  gains an answer-first definition and an FAQ
+
 ## [1.2.0] - 2026-10-20
 
 ### Added
