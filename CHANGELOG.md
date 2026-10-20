@@ -9,7 +9,7 @@ with a repo-local tens-based patch ladder — rules in
 
 ## [Unreleased]
 
-## [1.2.0] - 2026-10-18
+## [1.2.0] - 2026-10-20
 
 ### Added
 
@@ -29,9 +29,27 @@ with a repo-local tens-based patch ladder — rules in
   persistence in `~/.revai/harnesses.json`); the model now actually reaches the
   review (Configure → Running → harness argv) and validation runs with the saved
   model
+- media skill (`.agents/skills/media`) — the reusable recipe to capture honest screen
+  media of the running app: a disposable `REVAI_HOME` seeded with demo reviews, a demo
+  git repo for the Configure screen, Playwright-driven flows and `scripts/make-gif.mjs`
+  (PNG frames → animated GIF, pure JS, no ffmpeg) with `scripts/seed-demo-reviews.mjs`
+
+### Changed
+
+- docs: rebrand — the repo-root hard-hat logo is now the official mark on every
+  surface: README retitled and restructured to the current reality, the app public
+  logo swapped (header, onboarding, favicon) and `build/icon.png` added so
+  electron-builder stamps the brand on NSIS/dmg/AppImage/deb
+- docs: README gains the "Screen flows" gallery — five real-flow GIFs (new review,
+  configure, report triage, ⌘K palette, theme toggle) and the full prints set in
+  `docs/media/` (01–09, every screen)
 
 ### Fixed
 
+- release: macOS packaging had failed since the rebrand — `build/icon.png` at
+  400×400 is below electron-builder's 512×512 minimum for the DMG icon, so every
+  run after v1.1.30 died on the mac job and the releases stayed as drafts;
+  the icon now ships at 1024×1024 and the mac job builds again
 - theme toggle now switches every time (reactive theme store — the render-time DOM
   read kept a stale value, so the second click recomputed the same theme)
 - `Ctrl/⌘+G` navigates to Reviews (the sidebar advertised a `G` shortcut that had
@@ -42,36 +60,9 @@ with a repo-local tens-based patch ladder — rules in
   `exec` subcommand); opencode/codex model flags follow their subcommands
 - `npm run test` works again — vitest runs from the repo root (the SPA root
   `src/app` hid every test), with tests for `slugify` and the full-folder walk
-
-## [1.1.60] - 2026-10-17
-
-### Added
-
-- media skill (`.agents/skills/media`) — the reusable recipe to capture honest screen
-  media of the running app: a disposable `REVAI_HOME` seeded with demo reviews, a demo
-  git repo for the Configure screen, Playwright-driven flows and `scripts/make-gif.mjs`
-  (PNG frames → animated GIF, pure JS, no ffmpeg) with `scripts/seed-demo-reviews.mjs`
-
-### Changed
-
-- docs: README gains the "Screen flows" gallery — five real-flow GIFs (new review,
-  configure, report triage, ⌘K palette, theme toggle) and the full prints set in
-  `docs/media/` (01–09, every screen)
-
-### Fixed
-
 - dev: the Vite proxy key `'/api'` also matched the module `/api.ts` and swallowed it
   into the backend (blank page on `npm run dev`); a `'^/api/'` regex proxy keeps the
   module local while the real API keeps being proxied
-
-## [1.1.40] - 2026-10-15
-
-### Changed
-
-- docs: rebrand — the repo-root hard-hat logo is now the official mark on every
-  surface: README retitled and restructured to the current reality, the app public
-  logo swapped (header, onboarding, favicon) and `build/icon.png` added so
-  electron-builder stamps the brand on NSIS/dmg/AppImage/deb
 
 ## [1.1.30] - 2026-10-15
 
@@ -123,9 +114,7 @@ with a repo-local tens-based patch ladder — rules in
 - Project translated to en-us (docs, UI strings and startup banner)
 
 [Unreleased]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.2.0...HEAD
-[1.2.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.60...v1.2.0
-[1.1.60]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.40...v1.1.60
-[1.1.40]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.30...v1.1.40
+[1.2.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.30...v1.2.0
 [1.1.30]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.20...v1.1.30
 [1.1.20]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.1.0...v1.1.20
 [1.1.0]: https://github.com/jonathasrochadesouza/revai-platform/compare/v1.0.0...v1.1.0
