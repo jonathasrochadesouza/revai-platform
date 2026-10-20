@@ -175,7 +175,7 @@ function Shell() {
     <div className="app">
       <aside className="side" aria-label="Main navigation">
         <Link className="brand" to="/" title="Reviews">
-          <img src="/logo.png" alt="" />revai <small>v1.0</small>
+          <img src="/logo.png" alt="" />revai <small>v{__APP_VERSION__}</small>
         </Link>
         <NavLink
           to="/new"

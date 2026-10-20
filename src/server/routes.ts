@@ -15,6 +15,7 @@ import * as g from './git'
 import { exec, shellOpen, stream } from './proc'
 import { pickFolder } from './picker'
 import { gitVersion } from './git'
+import { appVersion } from './version'
 import type { FixEvent, ReviewRecord, RunFixBody, RunReviewBody, SseEvent, Settings } from '../shared/types'
 
 export const jobs = new Map<string, () => Promise<void>>()
@@ -37,7 +38,7 @@ api.onError((err, c) => {
 })
 
 // ── runtime ───────────────────────────────────────────────────────────────
-api.get('/health', (c) => c.json({ ok: true, revaiDir: REVAI_DIR, version: '0.1.0' }))
+api.get('/health', (c) => c.json({ ok: true, revaiDir: REVAI_DIR, version: appVersion() }))
 
 api.get('/env', async (c) =>
   c.json({
