@@ -9,6 +9,15 @@ with a repo-local tens-based patch ladder — rules in
 
 ## [Unreleased]
 
+### Added
+
+- merge-all-prs skill — batch-merge every open PR into `main` with a single
+  aggregated version bump and one green release: preflight + explicit user
+  confirmation, sequential `gh pr merge --delete-branch`, bump-version over
+  the accumulated `[Unreleased]` entries, release watched via watch-actions,
+  then verified cleanup (cosmetic red validate runs on intermediate merges
+  are expected and harmless)
+
 ## [1.2.0] - 2026-10-20
 
 ### Added

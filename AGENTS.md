@@ -8,6 +8,7 @@ Reusable agent skills live in `.agents/skills/<skill-name>/SKILL.md`. When a req
 
 - Commit / push / stage tracked changes → [`.agents/skills/git-commit-push/SKILL.md`](.agents/skills/git-commit-push/SKILL.md)
 - Bump the version / prepare a release → [`.agents/skills/bump-version/SKILL.md`](.agents/skills/bump-version/SKILL.md) — tens-based patch ladder (+10/+20/+30, minor, major); `CHANGELOG.md` top section is the version source of truth
+- Merge all open PRs in one batch (single bump + release) → [`.agents/skills/merge-all-prs/SKILL.md`](.agents/skills/merge-all-prs/SKILL.md) — preflight + explicit confirmation, sequential merges, one aggregated version bump, release watched via watch-actions, verified cleanup
 
 Skill conventions (Agent Skills spec): folder name equals the `name` field (kebab-case); `description` states what the skill does and when it triggers; body in imperative voice, aiming for < 500 lines; optional `references/` (docs loaded on demand) and `scripts/` (executed, not read).
 
