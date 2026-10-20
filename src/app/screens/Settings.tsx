@@ -67,8 +67,9 @@ export default function SettingsScreen() {
     try {
       const saved = await put<Settings>('/settings', s)
       setS(saved)
-      if (s.theme === 'dark') setTheme('dark')
-      if (s.theme === 'light') setTheme('light')
+      // no setTheme here: the theme applies instantly when picked (segment click) and the
+      // toolbar/T toggle is live until changed again — re-applying the stored value on
+      // save used to stomp a live light theme with the stale server value (dark flip).
       toast('Settings saved', 'ok')
     } catch (e: any) {
       toast(e.message, 'err')
